@@ -1,3 +1,4 @@
+import os
 import random
 import threading
 import time
@@ -9,6 +10,7 @@ from flask import Response
 from data_access.device_repository import DeviceRepository
 
 method_not_allowed = Response("{'405':'Method not allowed'}", status=405, mimetype='application/json')
+port = int(os.environ.get("PORT", 5000))
 
 
 class Status(Enum):
@@ -147,5 +149,6 @@ def Discover():
     return flask.jsonify(connected_devices)
 
 
-app.run()
+
+app.run(port=port)
 
