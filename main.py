@@ -147,5 +147,5 @@ def Discover():
     return flask.jsonify(connected_devices)
 
 
-app.run(port=5005)
+app.run()
 
