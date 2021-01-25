@@ -10,14 +10,13 @@ class DeviceRepository:
 
     def get_devices(self):
         query = """
-        prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        prefix owl: <http://www.w3.org/2002/07/owl#>
+        PREFIX saref: <https://saref.etsi.org/core/>
+prefix owl: <http://www.w3.org/2002/07/owl#>
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX e: <http://example.com/test#>
 
-        SELECT ?subject ?predicate ?object
-        WHERE {
-          ?subject ?predicate ?object
-        }
-        LIMIT 25
+DESCRIBE * 
+WHERE { ?a e:title "Door" }
             """
 
         results = self.fuseki_client.execute_statement(query)
