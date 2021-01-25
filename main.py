@@ -4,6 +4,9 @@ from controllers.controller_utils import page_not_found, server_error
 from controllers.device_controller import device_controller
 from controllers.group_controller import group_controller
 from controllers.user_controller import user_controller
+from flask_cors import CORS
+from enum import Enum
+from flask import Response
 
 
 app = flask.Flask(__name__)
@@ -15,6 +18,7 @@ app.config["DEBUG"] = True
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+cors = CORS(app)
 
 @app.errorhandler(404)
 def PageNotFound(exception):
