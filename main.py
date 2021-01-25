@@ -2,37 +2,39 @@ import os
 import random
 import threading
 import time
+import uuid
+
 import flask
 
 from enum import Enum
-from flask import Response
+from flask import Response, request
 
 from data_access.device_repository import DeviceRepository
 
 method_not_allowed = Response("{'405':'Method not allowed'}", status=405, mimetype='application/json')
+page_not_found = Response("{'404':'Not found'}", status=404, mimetype='application/json')
 
 
-class Status(Enum):
-    On = 1
-    Off = 0
+class DeviceStatus(Enum):
+    ON = 1
+    OFF = 0
 
 
 class GenericDevice:
-    status = Status.On.value
-    ip_address = ""
-    mac_address = ""
+    status = DeviceStatus.OFF.value
     name = ""
+    id = ""
+    data = {}
 
-    def __init__(self, ip_address, mac_address, name):
-        self.ip_address = ip_address
-        self.mac_address = mac_address
+    def __init__(self, name):
         self.name = name
+        self.id = uuid.uuid4()
 
     def OnCommand(self):
-        self.status = Status.On.value
+        self.status = DeviceStatus.ON.value
 
     def OffCommand(self):
-        self.status = Status.Off.value
+        self.status = DeviceStatus.OFF.value
 
     def GetStatus(self):
         return self.status
@@ -46,46 +48,78 @@ class LightBulb(GenericDevice):
 
 
 class HVAC(GenericDevice):
+    data = {
+        "temperature": 21.0,
+        "desired_temperature": 21.0
+    }
+
     def SimulateTemperatureVariations(self):
         while True:
             variation = random.randint(-1, 1)
-            self.temperature += variation * 0.5
-            time.sleep(1)
+            self.data["temperature"] += variation * 0.5
+            time.sleep(5)
 
-    def __init__(self, ip_address, mac_address, name):
-        super().__init__(ip_address, mac_address, name)
+    def RegulateTemperature(self):
+        while True:
+            if self.status == DeviceStatus.ON.value:
+                if round(self.data["temperature"], 1) > self.data["desired_temperature"]:
+                    self.data["temperature"] -= 0.1
+                elif round(self.data["temperature"], 1) < self.data["desired_temperature"]:
+                    self.data["temperature"] += 0.1
+            time.sleep(0.5)
+
+    def __init__(self, name):
+        super().__init__(name)
         x = threading.Thread(target=self.SimulateTemperatureVariations)
         x.start()
+        y = threading.Thread(target=self.RegulateTemperature)
+        y.start()
+
+    def SetDesiredTemperature(self, temperature):
+        self.data["desired_temperature"] = temperature
+        return self.data["desired_temperature"]
 
     def GetTemperature(self):
-        return self.temperature
-
-    temperature = 21.0
+        return round(self.data["temperature"], 1)
 
 
 class Door(GenericDevice):
+    data = {
+        "locked": False
+    }
+
+    def Lock(self):
+        self.data["locked"] = True
+        return self.data["locked"]
+
+    def Unlock(self):
+        self.data["locked"] = False
+        return self.data["locked"]
+
+    def GetLockStatus(self):
+        return self.data["locked"]
+
+
+class Outlet(GenericDevice):
     pass
 
 
-class Plug(GenericDevice):
-    pass
-
-
-door = Door("192.168.0.0", "6c:95:3f:11:0f:d8", "Smart Door")
-plug = Plug("192.168.0.1", "99:84:b3:e3:7d:99", "Smart Plug")
-hvac = HVAC("192.168.0.2", "c5:72:63:3b:fa:70", "Smart HVAC")
-light_bulb = LightBulb("192.168.0.3", "33:6c:1e:b7:f5:24", "Smart Plug")
+door = Door("Smart Door")
+plug = Outlet("Smart Outlet")
+hvac = HVAC("Smart HVAC")
+light_bulb = LightBulb("Smart LightBulb")
 
 devices = {
-    door.ip_address: door,
-    plug.ip_address: plug,
-    hvac.ip_address: hvac,
-    light_bulb.ip_address: light_bulb
+    door.id.__str__(): door,
+    plug.id.__str__(): plug,
+    hvac.id.__str__(): hvac,
+    light_bulb.id.__str__(): light_bulb
 }
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
 def ValidateAttribute(x, attribute):
@@ -100,47 +134,70 @@ def get_devices():
     return flask.jsonify(DeviceRepository().get_devices())
 
 
-@app.route('/<ip_address>/state', methods=['GET'])
-def GetStatus(ip_address):
-    if not ValidateAttribute(devices[ip_address], 'GetStatus'):
+@app.route('/devices/<device_id>/status', methods=['GET'])
+def GetStatus(device_id):
+    if not ValidateAttribute(devices[device_id], 'GetStatus'):
         return method_not_allowed
-    return flask.jsonify(status=devices[ip_address].GetStatus())
+    return flask.jsonify(status=devices[device_id].GetStatus())
 
 
-@app.route('/<ip_address>/toggle', methods=['GET'])
-def ToggleStatus(ip_address):
-    if not ValidateAttribute(devices[ip_address], 'ToggleCommand'):
+@app.route('/devices/<device_id>/toggle', methods=['GET'])
+def ToggleStatus(device_id):
+    if not ValidateAttribute(devices[device_id], 'ToggleCommand'):
         return method_not_allowed
-    devices[ip_address].ToggleCommand()
-    return flask.jsonify(status=devices[ip_address].GetStatus())
+    devices[device_id].ToggleCommand()
+    return flask.jsonify(status=devices[device_id].GetStatus())
 
 
-@app.route('/<ip_address>/temperature', methods=['GET'])
-def GetTemperature(ip_address):
-    if not ValidateAttribute(devices[ip_address], 'GetTemperature'):
+@app.route('/devices/<device_id>/temperature', methods=['GET'])
+def GetTemperature(device_id):
+    if not ValidateAttribute(devices[device_id], 'GetTemperature'):
         return method_not_allowed
-    return flask.jsonify(temperature=devices[ip_address].GetTemperature())
+    return flask.jsonify(temperature=devices[device_id].GetTemperature())
 
 
-@app.route('/<ip_address>/open', methods=['GET'])
-@app.route('/<ip_address>/on', methods=['GET'])
-def ToggleOnStatus(ip_address):
-    if not ValidateAttribute(devices[ip_address], 'GetStatus') or not ValidateAttribute(devices[ip_address], 'OnCommand'):
+@app.route('/devices/<device_id>/temperature', methods=['POST'])
+def SetTemperature(device_id):
+    if not ValidateAttribute(devices[device_id], 'SetDesiredTemperature'):
         return method_not_allowed
-    devices[ip_address].OnCommand()
-    return flask.jsonify(status=devices[ip_address].GetStatus())
+    body = request.get_json()
+    desired_temperature = int(body["desired_temperature"])
+    return flask.jsonify(temperature=devices[device_id].SetDesiredTemperature(desired_temperature))
 
 
-@app.route('/<ip_address>/close', methods=['GET'])
-@app.route('/<ip_address>/off', methods=['GET'])
-def ToggleOffStatus(ip_address):
-    if not ValidateAttribute(devices[ip_address], 'GetStatus') or not ValidateAttribute(devices[ip_address], 'OffCommand'):
+@app.route('/devices/<device_id>/on', methods=['GET'])
+def ToggleOnStatus(device_id):
+    if not ValidateAttribute(devices[device_id], 'GetStatus'):
         return method_not_allowed
-    devices[ip_address].OffCommand()
-    return flask.jsonify(status=devices[ip_address].GetStatus())
+    devices[device_id].OnCommand()
+    return flask.jsonify(status=devices[device_id].GetStatus())
 
 
-@app.route('/discover', methods=['GET'])
+@app.route('/devices/<device_id>/off', methods=['GET'])
+def ToggleOffStatus(device_id):
+    if not ValidateAttribute(devices[device_id], 'GetStatus'):
+        return method_not_allowed
+    devices[device_id].OffCommand()
+    return flask.jsonify(status=devices[device_id].GetStatus())
+
+
+@app.route('/devices/<device_id>/lock', methods=['GET'])
+def Lock(device_id):
+    if not ValidateAttribute(devices[device_id], 'Lock'):
+        return method_not_allowed
+    devices[device_id].Lock()
+    return flask.jsonify(locked=devices[device_id].GetLockStatus())
+
+
+@app.route('/devices/<device_id>/unlock', methods=['GET'])
+def Unlock(device_id):
+    if not ValidateAttribute(devices[device_id], 'Unlock'):
+        return method_not_allowed
+    devices[device_id].Unlock()
+    return flask.jsonify(locked=devices[device_id].GetLockStatus())
+
+
+@app.route('/devices/discover', methods=['GET'])
 def Discover():
     connected_devices = {}
     for device in devices:
@@ -148,7 +205,11 @@ def Discover():
     return flask.jsonify(connected_devices)
 
 
+@app.errorhandler(404)
+def PageNotFound(exception):
+    return page_not_found
+
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run()
 
