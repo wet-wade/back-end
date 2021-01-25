@@ -1,8 +1,9 @@
+import random
 import threading
 import time
 import uuid
 from enum import Enum
-from random import random
+
 
 import flask
 from flask import Blueprint, request
