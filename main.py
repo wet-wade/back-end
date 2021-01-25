@@ -13,6 +13,7 @@ from data_access.device_repository import DeviceRepository
 
 method_not_allowed = Response("{'405':'Method not allowed'}", status=405, mimetype='application/json')
 page_not_found = Response("{'404':'Not found'}", status=404, mimetype='application/json')
+server_error = Response("{'500':'Internal server error'}", status=500, mimetype='application/json')
 
 
 class DeviceStatus(Enum):
@@ -209,6 +210,10 @@ def Discover():
 def PageNotFound(exception):
     return page_not_found
 
+
+@app.errorhandler(500)
+def PageNotFound(exception):
+    return server_error
 
 if __name__ == "__main__":
     app.run()
