@@ -6,6 +6,7 @@ import flask
 from enum import Enum
 from flask import Response
 
+from data_access.device_repository import DeviceRepository
 
 method_not_allowed = Response("{'405':'Method not allowed'}", status=405, mimetype='application/json')
 
@@ -91,6 +92,11 @@ def ValidateAttribute(x, attribute):
         return True
     else:
         return
+
+
+@app.route('/devices', methods=['GET'])
+def get_devices():
+    return flask.jsonify(DeviceRepository().get_devices())
 
 
 @app.route('/<ip_address>/state', methods=['GET'])
