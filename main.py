@@ -1,6 +1,6 @@
 import flask
 
-from controllers.controller_utils import page_not_found
+from controllers.controller_utils import page_not_found, server_error
 from controllers.device_controller import device_controller
 from controllers.group_controller import group_controller
 from controllers.user_controller import user_controller
@@ -24,6 +24,7 @@ def PageNotFound(exception):
 @app.errorhandler(500)
 def PageNotFound(exception):
     return server_error
+
 
 if __name__ == "__main__":
     app.run()
