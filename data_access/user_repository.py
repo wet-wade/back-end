@@ -1,7 +1,7 @@
 import hashlib
 import uuid
 
-from controllers.controller_utils import encrypt_password
+from controllers.controller_utils import encrypt_password, get_uuid
 from data_access.fuseki_client import FusekiClient
 from passlib.context import CryptContext
 
@@ -12,9 +12,6 @@ class UserRepository:
     def __init__(self):
         self.fuseki_client = FusekiClient()
 
-    @staticmethod
-    def get_uuid():
-        return str(uuid.uuid4())
 
     @staticmethod
     def parse_json_result(result, index=0):
@@ -85,7 +82,7 @@ class UserRepository:
         return self.parse_json_result(result["results"]["bindings"])
 
     def insert_user(self, user):
-        user["id"] = self.get_uuid()
+        user["id"] = get_uuid()
         user["password"] = encrypt_password(user["password"])
 
         query = f"""

@@ -1,3 +1,5 @@
+import uuid
+
 from flask import Response
 from passlib.context import CryptContext
 
@@ -11,6 +13,10 @@ pwd_context = CryptContext(
     default="pbkdf2_sha256",
     pbkdf2_sha256__default_rounds=30000
 )
+
+
+def get_uuid():
+    return str(uuid.uuid4())
 
 
 def encrypt_password(password):
