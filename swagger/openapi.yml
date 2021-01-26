@@ -18,17 +18,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  required:
-                    - id
-                    - name
-                  properties:
-                    id:
-                      type: string
-                    name:
-                      type: string
+                type: object
+                additionalProperties:
+                  type: string
+                example:
+                  00000000-0000-0000-0000-000000000000: My device
       tags:
         - device
 

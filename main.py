@@ -37,7 +37,7 @@ def PageNotFound(exception):
 
 
 @flask_app.errorhandler(500)
-def PageNotFound(exception):
+def ServerError(exception):
     return server_error
 
 
