@@ -1,7 +1,4 @@
-import os
-
 import connexion as connexion
-import flask
 
 from controllers.controller_utils import page_not_found, server_error
 from controllers.device_controller import device_controller
@@ -22,11 +19,12 @@ app.add_api("openapi.yml", strict_validation=True)
 flask_app = app.app
 flask_app.register_blueprint(user_controller, url_prefix='/users')
 flask_app.register_blueprint(group_controller, url_prefix='/groups')
-flask_app.register_blueprint(device_controller, url_prefix='/devices')
+flask_app.register_blueprint(device_controller)
 
 flask_app.config["DEBUG"] = True
 flask_app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 flask_app.config["TEMPLATES_AUTO_RELOAD"] = True
+flask_app.config['JSON_SORT_KEYS'] = False
 
 cors = CORS(flask_app)
 

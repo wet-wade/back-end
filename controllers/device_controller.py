@@ -1,33 +1,25 @@
+import json
 import random
 import threading
 import time
-import uuid
-from enum import Enum
-
-
 import flask
-from flask import Blueprint, request
 
-from controllers.controller_utils import method_not_allowed, ValidateAttribute
+from flask import Blueprint, request
+from controllers.constants import DeviceStatus, DeviceCommand, DeviceType
+from controllers.controller_utils import method_not_allowed, ValidateAttribute, MapCommand, get_uuid, NewDeviceMapping, SavedDeviceMapping
 from data_access.device_repository import DeviceRepository
 
 device_controller = Blueprint('device_controller', __name__)
 
 
-class DeviceStatus(Enum):
-    ON = 1
-    OFF = 0
-
-
 class GenericDevice:
-    status = DeviceStatus.OFF.value
-    name = ""
-    id = ""
-    data = {}
-
     def __init__(self, name):
+        self.id = get_uuid()
         self.name = name
-        self.id = uuid.uuid4()
+        self.nickname = ""
+        self.available = False
+        self.status = DeviceStatus.OFF.value
+        self.data = {}
 
     def OnCommand(self):
         self.status = DeviceStatus.ON.value
@@ -43,15 +35,12 @@ class GenericDevice:
 
 
 class LightBulb(GenericDevice):
-    pass
+    def __init__(self, name):
+        super().__init__(name)
+        self.type = DeviceType.LIGHTBULB
 
 
 class HVAC(GenericDevice):
-    data = {
-        "temperature": 21.0,
-        "desired_temperature": 21.0
-    }
-
     def SimulateTemperatureVariations(self):
         while True:
             variation = random.randint(-1, 1)
@@ -69,6 +58,11 @@ class HVAC(GenericDevice):
 
     def __init__(self, name):
         super().__init__(name)
+        self.type = DeviceType.HVAC
+        self.data = {
+            "temperature": 21.0,
+            "desired_temperature": 21.0
+        }
         x = threading.Thread(target=self.SimulateTemperatureVariations)
         x.start()
         y = threading.Thread(target=self.RegulateTemperature)
@@ -83,9 +77,12 @@ class HVAC(GenericDevice):
 
 
 class Door(GenericDevice):
-    data = {
-        "locked": False
-    }
+    def __init__(self, name):
+        super().__init__(name)
+        self.type = DeviceType.DOOR
+        self.data = {
+            "locked": False
+        }
 
     def Lock(self):
         self.data["locked"] = True
@@ -100,93 +97,74 @@ class Door(GenericDevice):
 
 
 class Outlet(GenericDevice):
-    pass
+    def __init__(self, name):
+        super().__init__(name)
+        self.type = DeviceType.OUTLET
 
 
 door = Door("Smart Door")
-plug = Outlet("Smart Outlet")
+outlet = Outlet("Smart Outlet")
 hvac = HVAC("Smart HVAC")
 light_bulb = LightBulb("Smart LightBulb")
 
 devices = {
     door.id.__str__(): door,
-    plug.id.__str__(): plug,
+    outlet.id.__str__(): outlet,
     hvac.id.__str__(): hvac,
     light_bulb.id.__str__(): light_bulb
 }
 
 
-@device_controller.route('/', methods=['GET'])
-def get_devices():
-    return flask.jsonify(DeviceRepository().get_devices())
-
-
-@device_controller.route('/<device_id>/status', methods=['GET'])
-def GetStatus(device_id):
-    if not ValidateAttribute(devices[device_id], 'GetStatus'):
-        return method_not_allowed
-    return flask.jsonify(status=devices[device_id].GetStatus())
-
-
-@device_controller.route('/<device_id>/toggle', methods=['GET'])
-def ToggleStatus(device_id):
-    if not ValidateAttribute(devices[device_id], 'ToggleCommand'):
-        return method_not_allowed
-    devices[device_id].ToggleCommand()
-    return flask.jsonify(status=devices[device_id].GetStatus())
-
-
-@device_controller.route('/<device_id>/temperature', methods=['GET'])
-def GetTemperature(device_id):
-    if not ValidateAttribute(devices[device_id], 'GetTemperature'):
-        return method_not_allowed
-    return flask.jsonify(temperature=devices[device_id].GetTemperature())
-
-
-@device_controller.route('/<device_id>/temperature', methods=['POST'])
-def SetTemperature(device_id):
-    if not ValidateAttribute(devices[device_id], 'SetDesiredTemperature'):
-        return method_not_allowed
+@device_controller.route('/groups/<group_id>/devices/<device_id>/command', methods=['POST'])
+def ControlDevice(group_id, device_id):
     body = request.get_json()
-    desired_temperature = int(body["desired_temperature"])
-    return flask.jsonify(temperature=devices[device_id].SetDesiredTemperature(desired_temperature))
-
-
-@device_controller.route('/<device_id>/on', methods=['GET'])
-def ToggleOnStatus(device_id):
-    if not ValidateAttribute(devices[device_id], 'GetStatus'):
+    command = body["command"]
+    command_to_attribute = MapCommand(command)
+    print(command)
+    print(command_to_attribute)
+    if not ValidateAttribute(devices[device_id], command_to_attribute):
         return method_not_allowed
-    devices[device_id].OnCommand()
-    return flask.jsonify(status=devices[device_id].GetStatus())
+
+    if command == DeviceCommand.ON.name:
+        devices[device_id].OnCommand()
+        return flask.jsonify(status=devices[device_id].GetStatus())
+    elif command == DeviceCommand.OFF.name:
+        devices[device_id].OffCommand()
+        return flask.jsonify(status=devices[device_id].GetStatus())
+    elif command == DeviceCommand.LOCK.name:
+        devices[device_id].Lock()
+        return flask.jsonify(status=devices[device_id].GetStatus())
+    elif command == DeviceCommand.UNLOCK.name:
+        devices[device_id].Unlock()
+        return flask.jsonify(status=devices[device_id].GetStatus())
+    elif command == DeviceCommand.SET_TEMPERATURE.name:
+        desired_temperature = int(body["input"])
+        devices[device_id].SetDesiredTemperature(desired_temperature)
+        return flask.jsonify(temperature=devices[device_id].GetTemperature())
 
 
-@device_controller.route('/<device_id>/off', methods=['GET'])
-def ToggleOffStatus(device_id):
-    if not ValidateAttribute(devices[device_id], 'GetStatus'):
-        return method_not_allowed
-    devices[device_id].OffCommand()
-    return flask.jsonify(status=devices[device_id].GetStatus())
-
-
-@device_controller.route('/<device_id>/lock', methods=['GET'])
-def Lock(device_id):
-    if not ValidateAttribute(devices[device_id], 'Lock'):
-        return method_not_allowed
-    devices[device_id].Lock()
-    return flask.jsonify(locked=devices[device_id].GetLockStatus())
-
-
-@device_controller.route('/<device_id>/unlock', methods=['GET'])
-def Unlock(device_id):
-    if not ValidateAttribute(devices[device_id], 'Unlock'):
-        return method_not_allowed
-    devices[device_id].Unlock()
-    return flask.jsonify(locked=devices[device_id].GetLockStatus())
-
-
-@device_controller.route('/discover', methods=['GET'])
+@device_controller.route('/devices/discover', methods=['POST'])
 def Discover():
-    connected_devices = {}
-    for device in devices:
-        connected_devices[device] = devices[device].name
-    return flask.jsonify(connected_devices)
+    response = []
+    for device_id in devices:
+        response.append(NewDeviceMapping(devices[device_id]))
+    return flask.jsonify(response)
+
+
+@device_controller.route('/groups/<group_id>/devices', methods=['GET'])
+def GetDevices(group_id):
+    response = []
+    for device_id in devices:
+        response.append(SavedDeviceMapping(devices[device_id]))
+    return flask.jsonify(response)
+
+
+@device_controller.route('/groups/<group_id>/devices', methods=['POST'])
+def AddDevice(group_id):
+    body = request.get_json()
+    device_id = body["deviceId"]
+    nickname = body["nickname"]
+    return flask.jsonify({
+        "id": device_id,
+        "nickname": nickname
+    })
