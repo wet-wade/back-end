@@ -1,4 +1,8 @@
-from SPARQLWrapper import SPARQLWrapper, CSV, JSON
+import json
+
+from SPARQLWrapper import SPARQLWrapper, CSV, JSON, TURTLE
+from rdflib import Graph, plugin
+from rdflib.serializer import Serializer
 
 
 class FusekiClient:
@@ -7,17 +11,27 @@ class FusekiClient:
 
     regex = r"[ +\/()#*²]"
     subst = "_"
-    fuseki_client = None
 
-    def __init__(self):
-        self.fuseki_client = SPARQLWrapper(self.conn_string)
-        self.fuseki_client.method = "POST"
+    def get_conn_string(self, is_query=True):
+        return f"{self.conn_string}/query" if is_query else f"{self.conn_string}/update"
 
-    def execute_statement(self, query, return_format=JSON):
-        self.fuseki_client.setQuery(query)
-        self.fuseki_client.setReturnFormat(return_format)
-        results = self.fuseki_client.query().convert()
+    def query(self, query, return_format=JSON):
+        fuseki_client = SPARQLWrapper(self.get_conn_string())
+        fuseki_client.method = "POST"
+        fuseki_client.setQuery(query)
+        fuseki_client.setReturnFormat(return_format)
+
+        results = fuseki_client.queryAndConvert()
 
         return results
 
+    def execute(self, command, return_format=JSON):
+        fuseki_client = SPARQLWrapper(self.get_conn_string(False))
+        fuseki_client.method = "POST"
+        fuseki_client.setQuery(command)
+        fuseki_client.setReturnFormat(return_format)
+
+        results = fuseki_client.query()
+
+        return results
 
