@@ -1,19 +1,20 @@
 import flask
 from flask import Blueprint, request
 
-from controllers.controller_utils import page_not_found
+from controllers.controller_utils import page_not_found, server_error
+from data_access.group_repository import GroupRepository
 
 group_controller = Blueprint('group_controller', __name__)
 
 
 @group_controller.route("/", methods=["GET"])
 def get_groups():
-    return "list of groups"
+    return flask.jsonify(GroupRepository().get_groups_by_user("b956b391-c333-4017-967a-627fa6bd90a1"))
 
 
 @group_controller.route("/<group_id>", methods=["GET"])
 def get_group(group_id):
-    return f"Group {group_id}"
+    return flask.jsonify(GroupRepository().get_group(group_id))
 
 
 @group_controller.route("/<group_id>/discover", methods=["GET"])
@@ -28,7 +29,12 @@ def create_group():
 
     model = request.json
 
-    return flask.jsonify(model)
+    try:
+        result = GroupRepository().create_group(model)
+
+        return flask.jsonify(result)
+    except:
+        return server_error
 
 
 @group_controller.route("/<group_id>/devices", methods=["POST"])
