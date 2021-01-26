@@ -4,8 +4,8 @@
         { "saref": "https://w3id.org/saref#" }
     ],
     "id": "id",
-    "title": "Ligh Bulb",
-    "@type": "saref:LightSwitch",
+    "title": "Light Bulb",
+    "@type": "saref:Device",
     "securityDefinitions": {"basic_sc": {
         "scheme": "basic",
         "in": "header"
@@ -15,9 +15,15 @@
         "status": {
             "readOnly": true,
             "@type": "saref:OnOffState",
-            "type": "string",
             "forms": [{
                 "href": "https://wet-wade.herokuapp.com/{id}/state"
+            }]
+        },
+        "available": {
+            "readOnly": true,
+            "@type": "saref:Property",
+            "forms": [{
+                "href": "https://wet-wade.herokuapp.com/{id}/available"
             }]
         }
     },

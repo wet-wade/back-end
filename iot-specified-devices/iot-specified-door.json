@@ -5,7 +5,7 @@
     ],
     "id": "id",
     "title": "Door",
-    "@type": "saref:DoorSwitch",
+    "@type": "saref:Device",
     "securityDefinitions": {"basic_sc": {
         "scheme": "basic",
         "in": "header"
@@ -15,9 +15,15 @@
         "status": {
             "readOnly": true,
             "@type": "saref:OpenCloseState",
-            "type": "string",
             "forms": [{
                 "href": "https://wet-wade.herokuapp.com/{id}/state"
+            }]
+        },
+        "available": {
+            "readOnly": true,
+            "@type": "saref:Property",
+            "forms": [{
+                "href": "https://wet-wade.herokuapp.com/{id}/available"
             }]
         }
     },

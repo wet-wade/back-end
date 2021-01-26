@@ -15,15 +15,20 @@
         "status": {
             "readOnly": true,
             "@type": "saref:OnOffState",
-            "type": "string",
             "forms": [{
                 "href": "https://wet-wade.herokuapp.com/{id}/state"
+            }]
+        },
+        "available": {
+            "readOnly": true,
+            "@type": "saref:Property",
+            "forms": [{
+                "href": "https://wet-wade.herokuapp.com/{id}/available"
             }]
         },
         "temperature": {
             "readOnly": true,
             "@type": "saref:Temperature",
-            "type": "double",
             "minimum": 10.0,
             "maximum": 50.0,
             "forms": [{
@@ -44,20 +49,11 @@
                 "href": "https://wet-wade.herokuapp.com/{id}/on"
             }]
         },
-        "reachTemperature" : {
-            "title": "Reach desired temperature",
-            "description": "Turn on heat or cooling automatically",
-            "input": {
-                "type": "object",
-                "properties": {
-                    "temperature": {
-                        "type": "integer",
-                        "minimum": 10,
-                        "maximum": 50
-                    }
-                },
-                "required": ["temperature"]
-            }
+        "setTemperature" : {
+            "@type": "saref:Command",
+            "forms": [{
+                "href": "https://wet-wade.herokuapp.com/{id}/setTemperature"
+            }]
         }
     }
 }

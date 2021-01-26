@@ -15,9 +15,15 @@
         "status": {
             "readOnly": true,
             "@type": "saref:OnOffState",
-            "type": "string",
             "forms": [{
                 "href": "https://wet-wade.herokuapp.com/{id}/state"
+            }]
+        },
+        "available": {
+            "readOnly": true,
+            "@type": "saref:Property",
+            "forms": [{
+                "href": "https://wet-wade.herokuapp.com/{id}/available"
             }]
         }
     },
