@@ -4,6 +4,7 @@ from flask import Response
 from passlib.context import CryptContext
 from models.constants import DeviceCommand
 
+bad_request = Response("{'400': 'Bad Request'}", status=400, mimetype='application/json')
 unauthorized = Response("{'401': 'Unauthorized'}", status=401, mimetype='application/json')
 method_not_allowed = Response("{'405':'Method not allowed'}", status=405, mimetype='application/json')
 page_not_found = Response("{'404':'Not found'}", status=404, mimetype='application/json')

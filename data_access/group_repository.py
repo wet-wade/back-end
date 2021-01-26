@@ -28,7 +28,7 @@ class GroupRepository:
             member, member_id, member_name, \
             device, device_id, device_name, device_nickname, device_type, \
             permissions, permission_device_id, permission_member_id, \
-            permission_can_manage, permission_can_read, permission_can_write = line.split(',')
+            permission_manage, permission_read, permission_write = line.split(',')
 
             if not res:
                 res = {
@@ -58,15 +58,20 @@ class GroupRepository:
                         "type": device_type.split("#")[-1]
                     })
 
-            if permission_device_id != "" or permission_member_id != "" or permission_can_manage != "" \
-                    or permission_can_read != "" or permission_can_write:
-                res["permissions"].append({
-                    "deviceId": permission_device_id,
-                    "memberId": permission_member_id,
-                    "canManage": permission_can_manage,
-                    "canRead": permission_can_read,
-                    "canWrite": permission_can_write,
-                })
+            if permission_device_id != "" or permission_member_id != "" or permission_manage != "" \
+                    or permission_read != "" or permission_write != "":
+                permission_id = permissions.split("#")[-1]
+                permission_filtering = list(filter(lambda prop: prop["id"] == permission_id, res["permissions"]))
+
+                if not permission_filtering:
+                    res["permissions"].append({
+                        "id": permission_id,
+                        "deviceId": permission_device_id,
+                        "memberId": permission_member_id,
+                        "manage": permission_manage,
+                        "read": permission_read,
+                        "write": permission_write,
+                    })
 
         return res
 
@@ -148,12 +153,12 @@ class GroupRepository:
       		}}
     
     		OPTIONAL {{
-                ?group groups:permissions ?permissions .
+                ?group groups:hasPermission ?permissions .
                 ?permissions permissions:deviceId ?permission_device_id .
                 ?permissions permissions:memberId ?permission_member_id .
-                ?permissions permissions:canManage ?permission_can_manage .
-                ?permissions permissions:canRead ?permission_can_read .
-                ?permissions permissions:canWrite ?permission_can_write .
+                ?permissions permissions:manage ?permission_can_manage .
+                ?permissions permissions:read ?permission_can_read .
+                ?permissions permissions:write ?permission_can_write .
       		}}
         }}
         """

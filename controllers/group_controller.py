@@ -1,8 +1,9 @@
 import flask
 
 from flask import Blueprint, request
-from controllers.controller_utils import page_not_found, server_error, MapCommand
+from controllers.controller_utils import page_not_found, server_error, MapCommand, bad_request
 from data_access.group_repository import GroupRepository
+from data_access.permission_repository import PermissionRepository
 
 group_controller = Blueprint('group_controller', __name__)
 
@@ -66,8 +67,12 @@ def join_group(group_id):
 def set_permissions(group_id):
     if not request.json:
         return page_not_found
+    if not request.json.get("permissions", None):
+        return bad_request
 
-    model = request.json
+    model = request.json["permissions"]
+
+    PermissionRepository().add_permission(group_id, model)
 
     return flask.jsonify(model)
 
