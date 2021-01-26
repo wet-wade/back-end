@@ -23,11 +23,7 @@ class GroupRepository:
                 res = {
                     "id": id,
                     "name": name,
-                    "owner": {
-                        "id": owner_id,
-                        "username": owner.split("#")[-1],
-                        "name": owner_name
-                    },
+                    "ownerId": owner_id,
                     "members": [],
                     "devices": [],
                     "permissions": []
@@ -35,7 +31,6 @@ class GroupRepository:
 
             res["members"].append({
                 "id": member_id,
-                "username": member.split("#")[-1],
                 "name": member_name
             })
 
