@@ -3,9 +3,13 @@ import uuid
 from flask import Response
 from passlib.context import CryptContext
 
+unauthorized = Response("{'401': 'Unauthorized'}", status=401, mimetype='application/json')
 method_not_allowed = Response("{'405':'Method not allowed'}", status=405, mimetype='application/json')
 page_not_found = Response("{'404':'Not found'}", status=404, mimetype='application/json')
+
 server_error = Response("{'500':'Internal server error'}", status=500, mimetype='application/json')
+
+ok = Response("{'200', 'OK'}", status=200, mimetype='application/json')
 created = Response("{'201':'Created'}", status=201, mimetype='application/json')
 
 pwd_context = CryptContext(
