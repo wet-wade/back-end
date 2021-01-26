@@ -22,6 +22,7 @@ class GroupRepository:
     @staticmethod
     def parse_detailed_csv_results(results):
         res = {}
+        device_repository = DeviceRepository()
 
         for line in results.decode("utf-8").strip().split("\r\n")[1:]:
             group, name, id, owner, owner_id, owner_name, \
@@ -50,12 +51,18 @@ class GroupRepository:
 
             if device != "" or device_id != "" or device_name != "" or device_nickname != "" or device_type != "":
                 device_filtering = list(filter(lambda prop: prop["id"] == device_id, res["devices"]))
+                device_type = device_type.split("#")[-1]
                 if not device_filtering:
+                    device_definition = device_repository.get_device_definition_by_type(device_type)
+
                     res["devices"].append({
                         "id": device_id,
                         "name": device_name,
                         "nickname": device_nickname,
-                        "type": device_type.split("#")[-1]
+                        "type": device_type,
+                        "title": device_definition["title"],
+                        "properties": device_definition["properties"],
+                        "actions": device_definition["actions"]
                     })
 
             if permission_device_id != "" or permission_member_id != "" or permission_manage != "" \
