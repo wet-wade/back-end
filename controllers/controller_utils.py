@@ -7,10 +7,20 @@ from models.constants import DeviceCommand
 unauthorized = Response("{'401': 'Unauthorized'}", status=401, mimetype='application/json')
 method_not_allowed = Response("{'405':'Method not allowed'}", status=405, mimetype='application/json')
 page_not_found = Response("{'404':'Not found'}", status=404, mimetype='application/json')
-server_error = Response("{'500':'Internal server error'}", status=500, mimetype='application/json')
 not_acceptable = Response("{'406':'Not acceptable'}", status=406, mimetype='application/json')
+
+server_error = Response("{'500':'Internal server error'}", status=500, mimetype='application/json')
+
 ok = Response("{'200', 'OK'}", status=200, mimetype='application/json')
 created = Response("{'201':'Created'}", status=201, mimetype='application/json')
+
+known_devices = {
+    "hvac": ["LG LW1817IVSM", "Midea Smartcool", "Midea U Inverter", "GE AHP10LZ", "Frigidaire Cool Connect"],
+    "lighbulb": ["Tuya Smart Life", "Phillips HUE", "TP LINK L510E"],
+    "door": ["Ultraloq U-Bolt Pro", "Kwikset Halo Touch", "Nest X Yale Lock", "August Wi-Fi Smart Lock"],
+    "outlet": ["Amazon Smart Plug", "DELTACO", "Tuya Smart Plug"]
+
+}
 
 pwd_context = CryptContext(
     schemes=["pbkdf2_sha256"],
