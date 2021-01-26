@@ -16,14 +16,14 @@
             "readOnly": true,
             "@type": "saref:OpenCloseState",
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/state"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/state"
             }]
         },
         "available": {
             "readOnly": true,
             "@type": "saref:Property",
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/available"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/available"
             }]
         }
     },
@@ -31,13 +31,13 @@
         "close": {
             "@type": "saref:CloseCommand",
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/close"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/close"
             }]
         },
         "open": {
             "@type": "saref:OpenCommand",
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/open"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/open"
             }]
         }
     }
