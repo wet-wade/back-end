@@ -120,8 +120,7 @@ def ControlDevice(group_id, device_id):
     body = request.get_json()
     command = body["command"]
     command_to_attribute = MapCommand(command)
-    print(command)
-    print(command_to_attribute)
+
     if not ValidateAttribute(devices[device_id], command_to_attribute):
         return method_not_allowed
 
