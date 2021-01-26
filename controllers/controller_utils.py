@@ -1,9 +1,8 @@
 import uuid
 
-from enum import Enum
 from flask import Response
 from passlib.context import CryptContext
-from controllers.constants import DeviceCommand
+from models.constants import DeviceCommand
 
 unauthorized = Response("{'401': 'Unauthorized'}", status=401, mimetype='application/json')
 method_not_allowed = Response("{'405':'Method not allowed'}", status=405, mimetype='application/json')

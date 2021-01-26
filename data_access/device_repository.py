@@ -26,7 +26,7 @@ WHERE { ?a e:title "Door" }
     def insert_device(self):
         query = """
     PREFIX dc: <http://purl.org/dc/elements/1.1/>
-    INSERT { <http://example/egbook> dc:title  "Other test" }
+    INSERT { <http://example/egbook> dc:title  "Other mock" }
     WHERE {}
         """
 

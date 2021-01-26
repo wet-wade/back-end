@@ -4,49 +4,49 @@ info:
   title: wet-wade
   description: An API used to manage and control the existing IoT devices currently connected at local level
 paths:
-  /groups/<group_id>/devices/<device_id>/command:
-    post:
-      description: A command will be executed by a device capable of that functionality
-      operationId: controllers.device_controller.ControlDevice
-      parameters:
-        - name: device_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - command
-              properties:
-                command:
-                  type: string
-                input:
-                  oneOf:
-                    - type: integer
-                    - type: boolean
-      responses:
-        '200':
-          description: Successfully executed the given command
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: string
-                example:
-                  device_parameter: device_value
-      tags:
-        - Group
+#  /groups/<group_id>/devices/<device_id>/command:
+#    post:
+#      description: A command will be executed by a device capable of that functionality
+#      operationId: controllers.group_controller.control_device
+#      parameters:
+#        - name: device_id
+#          in: path
+#          required: true
+#          schema:
+#            type: string
+#        - name: group_id
+#          in: path
+#          required: true
+#          schema:
+#            type: string
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              required:
+#                - command
+#              properties:
+#                command:
+#                  type: string
+#                input:
+#                  oneOf:
+#                    - type: integer
+#                    - type: boolean
+#      responses:
+#        '200':
+#          description: Successfully executed the given command
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                additionalProperties:
+#                  type: string
+#                example:
+#                  device_parameter: device_value
+#      tags:
+#        - Group
 
   /devices/discover:
       get:
@@ -71,74 +71,74 @@ paths:
         tags:
           - Device
 
-  /groups/<group_id>/devices:
-      post:
-        description: Adds a device to a particular group
-        operationId: controllers.device_controller.AddDevice
-        parameters:
-          - name: group_id
-            in: path
-            required: true
-            schema:
-              type: string
-        requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - deviceId
-                  - nickname
-                properties:
-                  deviceId:
-                    type: string
-                  nickname:
-                    type: string
-        responses:
-          '200':
-            description: Successfully added a device to the group
+#  /groups/<group_id>:
+#      post:
+#        description: Adds a device to a particular group
+#        operationId: controllers.group_controller.add_device
+#        parameters:
+#          - name: group_id
+#            in: path
+#            required: true
+#            schema:
+#              type: string
+#        requestBody:
+#          required: true
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                required:
+#                  - deviceId
+#                  - nickname
+#                properties:
+#                  deviceId:
+#                    type: string
+#                  nickname:
+#                    type: string
+#        responses:
+#          '200':
+#            description: Successfully added a device to the group
+#
+#            content:
+#              application/json:
+#                schema:
+#                  type: object
+#                  properties:
+#                    id:
+#                      type: string
+#                    nickname:
+#                      type: string
+#        tags:
+#          - Group
 
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    nickname:
-                      type: string
-        tags:
-          - Group
-
-      get:
-        description: Gets the devices associated to a particular group
-        operationId: controllers.device_controller.GetDevices
-        parameters:
-          - name: group_id
-            in: path
-            required: true
-            schema:
-              type: string
-        responses:
-          '200':
-            description: Successfully retrieved all the devices asociated with a group
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    nickname:
-                      type: string
-                    available:
-                      type: boolean
-                    status:
-                      type: object
-                      additionalProperties:
-                        oneOf:
-                          - type: string
-                          - type: integer
-                    data:
-                      type: object
-        tags:
-          - Group
+#      get:
+#        description: Gets the devices associated to a particular group
+#        operationId: controllers.device_controller.GetDevices
+#        parameters:
+#          - name: group_id
+#            in: path
+#            required: true
+#            schema:
+#              type: string
+#        responses:
+#          '200':
+#            description: Successfully retrieved all the devices asociated with a group
+#            content:
+#              application/json:
+#                schema:
+#                  type: object
+#                  properties:
+#                    nickname:
+#                      type: string
+#                    available:
+#                      type: boolean
+#                    status:
+#                      type: object
+#                      additionalProperties:
+#                        oneOf:
+#                          - type: string
+#                          - type: integer
+#                    data:
+#                      type: object
+#        tags:
+#          - Group

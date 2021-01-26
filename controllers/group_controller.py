@@ -1,7 +1,7 @@
 import flask
-from flask import Blueprint, request
 
-from controllers.controller_utils import page_not_found, server_error
+from flask import Blueprint, request
+from controllers.controller_utils import page_not_found, server_error, MapCommand
 from data_access.group_repository import GroupRepository
 
 group_controller = Blueprint('group_controller', __name__)
@@ -67,11 +67,29 @@ def set_permissions(group_id):
     return flask.jsonify(model)
 
 
-@group_controller.route("/<group_id>/devices/<device_id>/<command>", methods=["POST"])
-def control_device(group_id, device_id, command):
-    if not request.json:
-        return page_not_found
+@group_controller.route("/<group_id>/devices/<device_id>/command", methods=["POST"])
+def control_device(group_id, device_id):
+    body = request.get_json()
+    command = body["command"]
+    command_to_attribute = MapCommand(command)
 
-    model = request.json
-
-    return flask.jsonify(model)
+    # if not ValidateAttribute(devices[device_id], command_to_attribute):
+    #     return method_not_allowed
+    #
+    # if command == DeviceCommand.ON.name:
+    #     devices[device_id].OnCommand()
+    #     return flask.jsonify(status=devices[device_id].GetStatus())
+    # elif command == DeviceCommand.OFF.name:
+    #     devices[device_id].OffCommand()
+    #     return flask.jsonify(status=devices[device_id].GetStatus())
+    # elif command == DeviceCommand.LOCK.name:
+    #     devices[device_id].Lock()
+    #     return flask.jsonify(status=devices[device_id].GetStatus())
+    # elif command == DeviceCommand.UNLOCK.name:
+    #     devices[device_id].Unlock()
+    #     return flask.jsonify(status=devices[device_id].GetStatus())
+    # elif command == DeviceCommand.SET_TEMPERATURE.name:
+    #     desired_temperature = int(body["input"])
+    #     devices[device_id].SetDesiredTemperature(desired_temperature)
+    #     return flask.jsonify(temperature=devices[device_id].GetTemperature())
+    return page_not_found
