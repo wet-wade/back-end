@@ -1,0 +1,306 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: wet-wade
+  description: An API used to manage and control the existing IoT devices currently connected at local level
+servers:
+  - url: https://wet-wade.herokuapp.com
+  - url: http://127.0.0.1:5000/
+paths:
+
+  /devices:
+    get:
+      operationId: controllers.device_controller.get_devices
+      description: Returns a list of linked devices
+      responses:
+        '200':
+          description: Successfully returned a list of linked devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - name
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+      tags:
+        - device
+
+  #  ----- Added lines  ----------------------------------------
+
+  /devices/{device_id}/status:
+    get:
+      description: Returns the status of a particular device
+      operationId: controllers.device_controller.GetStatus
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successfully returned the status of a particular device
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                    - status
+                properties:
+                  status:
+                    type: string
+        '405':
+          description: Method not allowed
+      tags:
+        - device
+
+  #  ----- Added lines  ----------------------------------------
+
+  /devices/{device_id}/toggle:
+    get:
+      description: Will toggle the status of a particular device (ON <-> OFF)
+      operationId: controllers.device_controller.ToggleStatus
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successfully returned the status of a particular device after toggling
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                    - status
+                properties:
+                  status:
+                    type: number
+        '405':
+          description: Method not allowed
+      tags:
+        - device
+
+  #  ----- Added lines  ----------------------------------------
+
+  /devices/{device_id}/temperature:
+    get:
+      description: Will get the current temperature of a device capable of measuring temperature
+      operationId: controllers.device_controller.GetTemperature
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successfully returned the current temperature measured by a device
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                    - temperature
+                properties:
+                  temperature:
+                    type: number
+        '405':
+          description: Method not allowed
+      tags:
+        - device
+
+    post:
+      description: Will set a desired temperature of a device capable of controlling temperature
+      operationId: controllers.device_controller.SetTemperature
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                  - desired_temperature
+              properties:
+                desired_temperature:
+                  type: number
+      responses:
+        '200':
+          description: Successfully returned the current temperature measured by a device
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                    - temperature
+                properties:
+                  temperature:
+                    type: string
+        '405':
+          description: Method not allowed
+      tags:
+        - device
+
+#  ----- Added lines  ----------------------------------------
+
+  /devices/{device_id}/on:
+    get:
+      description: Will turn on a particular device
+      operationId: controllers.device_controller.ToggleOnStatus
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successfully turned on a particular device
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                    - status
+                properties:
+                  status:
+                    type: number
+        '405':
+          description: Method not allowed
+      tags:
+        - device
+
+#  ----- Added lines  ----------------------------------------
+
+  /devices/{device_id}/off:
+    get:
+      description: Will turn off a particular device
+      operationId: controllers.device_controller.ToggleOffStatus
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successfully turned off a particular device
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                    - status
+                properties:
+                  status:
+                    type: number
+        '405':
+          description: Method not allowed
+      tags:
+        - device
+
+#  ----- Added lines  ----------------------------------------
+
+  /devices/{device_id}/lock:
+    get:
+      description: Will lock a device capable of lock unlock functionality
+      operationId: controllers.device_controller.Lock
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successfully locked a device capable of lock unlock functionality
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                    - locked
+                properties:
+                  locked:
+                    type: boolean
+        '405':
+          description: Method not allowed
+      tags:
+        - device
+
+#  ----- Added lines  ----------------------------------------
+
+  /devices/{device_id}/unlock:
+    get:
+      description: Will unlock a device capable of lock unlock functionality
+      operationId: controllers.device_controller.Unlock
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successfully unlocked a device capable of lock unlock functionality
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                    - locked
+                properties:
+                  locked:
+                    type: boolean
+        '405':
+          description: Method not allowed
+      tags:
+        - device
+
+#  ----- Added lines  ----------------------------------------
+
+  /devices/discover:
+    get:
+      description: Returns a list of devices currently connected, but not linked
+      operationId: controllers.device_controller.Discover
+      responses:
+        '200':
+          description: Successfully returned a list of devices currently connected, but not linked
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - name
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+      tags:
+        - device
