@@ -134,7 +134,7 @@ class GroupRepository:
 
         result = self.fuseki_client.query(query, "csv")
 
-        return self.parse_csv_results(result)
+        return self.parse_detailed_csv_results(result)
 
     def create_group(self, group):
         group["id"] = get_uuid()
