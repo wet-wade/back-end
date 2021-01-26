@@ -26,7 +26,7 @@ class GroupRepository:
         for line in results.decode("utf-8").strip().split("\r\n")[1:]:
             group, name, id, owner, owner_id, owner_name, \
             member, member_id, member_name, \
-            device, device_id, device_name, \
+            device, device_id, device_name, device_nickname, device_type, \
             permissions, permission_device_id, permission_member_id, \
             permission_can_manage, permission_can_read, permission_can_write = line.split(',')
 
@@ -40,17 +40,23 @@ class GroupRepository:
                     "permissions": []
                 }
 
-            res["members"].append({
-                "id": member_id,
-                "name": member_name
-            })
+            if member_id != "" or member_name != "":
+                member_filtering = list(filter(lambda prop: prop["id"] == member_id, res["members"]))
+                if not member_filtering:
+                    res["members"].append({
+                        "id": member_id,
+                        "name": member_name
+                    })
 
-            if device != "" or device_id != "" or device_name != "":
-                res["devices"].append({
-                    "id": device_id,
-                    "username": device.split("#")[-1],
-                    "name": device_name
-                })
+            if device != "" or device_id != "" or device_name != "" or device_nickname != "" or device_type != "":
+                device_filtering = list(filter(lambda prop: prop["id"] == device_id, res["devices"]))
+                if not device_filtering:
+                    res["devices"].append({
+                        "id": device_id,
+                        "name": device_name,
+                        "nickname": device_nickname,
+                        "type": device_type.split("#")[-1]
+                    })
 
             if permission_device_id != "" or permission_member_id != "" or permission_can_manage != "" \
                     or permission_can_read != "" or permission_can_write:
@@ -134,16 +140,21 @@ class GroupRepository:
             ?member users:name ?member_name .
             
             OPTIONAL {{
-                ?group groups:devices ?devices .
-                ?devices devices:id ?device_id .
-                ?devices devices:name ?device_name .
+        		?group groups:consistsOf ?device .
+                ?device devices:id ?device_id .
+                ?device devices:name ?device_name .
+        		?device devices:nickname ?device_nickname .
+                ?device a ?device_type .
+      		}}
+    
+    		OPTIONAL {{
                 ?group groups:permissions ?permissions .
                 ?permissions permissions:deviceId ?permission_device_id .
                 ?permissions permissions:memberId ?permission_member_id .
                 ?permissions permissions:canManage ?permission_can_manage .
                 ?permissions permissions:canRead ?permission_can_read .
                 ?permissions permissions:canWrite ?permission_can_write .
-            }}
+      		}}
         }}
         """
 
