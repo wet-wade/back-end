@@ -150,3 +150,52 @@ class GroupRepository:
         self.fuseki_client.execute(query)
 
         return group["id"]
+
+    @staticmethod
+    def parse_group_devices_csv(results):
+        current_devices = []
+
+        for line in results.decode("utf-8").strip().split("\r\n")[1:]:
+            current_devices.append(line.split("#")[-1])
+
+        return current_devices
+
+    @staticmethod
+    def compute_sparql_devices(prefix, device_ids):
+        result = ""
+        for device_id in device_ids:
+            if len(result) == 0:
+                result = f"{prefix}:{device_id}"
+            else:
+                result = f"{result} , {prefix}:{device_id}"
+
+        return result
+
+    def get_group_devices(self, group_id):
+        query = f"""
+                PREFIX groups: <http://www.semanticweb.org/ontologies/groups#> 
+                SELECT ?object WHERE
+                {{
+                    groups:{group_id} groups:consistsOf ?object
+                }}
+            """
+        results = self.fuseki_client.query(query, "csv")
+
+        return self.parse_group_devices_csv(results)
+
+    def insert_new_device(self, group_id, device_id):
+        current_devices = self.get_group_devices(group_id)
+        current_devices.append(device_id)
+
+        insert = f"""
+                PREFIX devices: <http://www.semanticweb.org/ontologies/devices#>
+                PREFIX groups: <http://www.semanticweb.org/ontologies/groups#>
+                DELETE WHERE {{
+                    groups:{group_id} groups:consistsOf ?object
+                }};  
+                INSERT DATA {{
+                    groups:{group_id} groups:consistsOf {self.compute_sparql_devices('devices', current_devices)}
+                }}
+            """
+
+        self.fuseki_client.execute(insert)

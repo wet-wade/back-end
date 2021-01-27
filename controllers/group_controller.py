@@ -42,9 +42,12 @@ def add_device(group_id):
     if not request.json:
         return page_not_found
 
-    model = request.json
+    body = request.json
+    device_id = body["deviceId"]
 
-    return flask.jsonify(model)
+    GroupRepository().insert_new_device(group_id, device_id)
+
+    return flask.jsonify(body)
 
 
 @group_controller.route("/<group_id>/members", methods=["POST"])
