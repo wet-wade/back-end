@@ -22,6 +22,80 @@ class PermissionRepository:
     def __init__(self):
         self.fuseki_client = FusekiClient()
 
+    def set_permission(self, group_id, user_id, permission):
+        if not self.check_manage_permission(group_id, user_id):
+            return
+
+        if not self.check_exists_permission(group_id, user_id, permission["deviceId"]):
+            self.add_permission(group_id, permission)
+        else:
+            self.update_permission(group_id, permission)
+
+    def check_manage_permission(self, group_id, user_id):
+        query = f"""
+        {self.prefixes}
+        SELECT ?permission_can_manage
+        WHERE {{
+            ?group rdf:type groups:Group ;
+                groups:id "{group_id}" .
+            ?group groups:name ?name .
+            ?group groups:id ?id .
+    
+    		OPTIONAL {{
+                ?group groups:hasPermission ?permissions .
+        		?permissions permissions:memberId ?permissions_member_id .
+                ?permissions permissions:deviceId ?permission_device_id .
+                ?permissions permissions:manage ?permission_can_manage .
+                ?permissions permissions:read ?permission_can_read .
+                ?permissions permissions:write ?permission_can_write .
+      		}}
+    
+    		FILTER (?permissions_member_id = "{user_id}")
+        }}
+        """
+
+        result = self.fuseki_client.query(query, "csv").decode("utf-8").strip().split("\r\n")[1:]
+
+        if not result:
+            return False
+        elif result == ["1"]:
+            return True
+
+        return False
+
+    def check_exists_permission(self, group_id, user_id, device_id):
+        query = f"""
+        {self.prefixes}
+        SELECT ?permissions
+        WHERE {{
+            ?group rdf:type groups:Group ;
+                groups:id "{group_id}" .
+            ?group groups:name ?name .
+            ?group groups:id ?id .
+
+    		OPTIONAL {{
+                ?group groups:hasPermission ?permissions .
+        		?permissions permissions:memberId ?permissions_member_id .
+                ?permissions permissions:deviceId ?permissions_device_id .
+                ?permissions permissions:manage ?permission_can_manage .
+                ?permissions permissions:read ?permission_can_read .
+                ?permissions permissions:write ?permission_can_write .
+      		}}
+
+    		FILTER (?permissions_member_id = "{user_id}"
+                &&  ?permissions_device_id = "{device_id}")
+        }}
+        """
+
+        result = self.fuseki_client.query(query, "csv").decode("utf-8").strip().split("\r\n")[1:]
+
+        if not result:
+            return False
+        elif result:
+            return True
+
+        return False
+
     def add_permission(self, group_id, permission):
         id = get_uuid()
 
@@ -40,6 +114,41 @@ class PermissionRepository:
         INSERT DATA {{
             groups:{group_id} groups:hasPermission permissions:{id} .
         }}   
+        """
+
+        self.fuseki_client.execute(query)
+
+    def update_permission(self, group_id, permission):
+        query = f"""
+        {self.prefixes}
+        DELETE {{
+            ?permissions permissions:memberId ?permissions_member_id .
+            ?permissions permissions:deviceId ?permissions_device_id .
+            ?permissions permissions:manage ?permission_can_manage .
+            ?permissions permissions:read ?permission_can_read .
+            ?permissions permissions:write ?permission_can_write .
+        }}
+        INSERT {{
+            ?permissions permissions:memberId "{permission["memberId"]}" .
+            ?permissions permissions:deviceId "{permission["deviceId"]}" .
+            ?permissions permissions:manage "{permission["manage"]}" .
+            ?permissions permissions:read "{permission["read"]}" .
+            ?permissions permissions:write "{permission["write"]}" .
+        }}   
+        WHERE {{
+            ?group rdf:type groups:Group ;
+                groups:id "{group_id}" .
+
+            ?group groups:hasPermission ?permissions .
+            ?permissions permissions:memberId ?permissions_member_id .
+            ?permissions permissions:deviceId ?permissions_device_id .
+            ?permissions permissions:manage ?permission_can_manage .
+            ?permissions permissions:read ?permission_can_read .
+            ?permissions permissions:write ?permission_can_write .
+
+            FILTER (?permissions_member_id = "{permission["memberId"]}"
+                &&  ?permissions_device_id = "{permission["deviceId"]}")
+        }}
         """
 
         self.fuseki_client.execute(query)

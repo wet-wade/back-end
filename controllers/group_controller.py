@@ -74,10 +74,11 @@ def set_permissions(group_id):
         return bad_request
 
     model = request.json["permissions"]
+    user_id = request.json["userId"]
 
-    PermissionRepository().add_permission(group_id, model)
+    result = PermissionRepository().set_permission(group_id, user_id, model)
 
-    return flask.jsonify(model)
+    return flask.jsonify(result)
 
 
 @group_controller.route("/<group_id>/devices/<device_id>/command", methods=["POST"])
