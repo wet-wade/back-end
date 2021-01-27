@@ -266,6 +266,91 @@ paths:
                     $ref: '#/components/schemas/Group'
       tags:
         - Group
+        
+  /auth/login:
+    post:
+      description: Authenticate via username and password
+      operationId: controllers.user_controller.login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+      tags:
+        - User
+        
+  /auth/token:
+    post:
+      description: Authenticate via token
+      operationId: controllers.user_controller.auth_token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+      tags:
+        - User
+        
+  /auth/register:
+    post:
+      description: Register new user
+      operationId: controllers.user_controller.register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+      tags:
+        - User
 
 components:
   schemas:
