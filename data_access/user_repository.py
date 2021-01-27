@@ -19,7 +19,6 @@ class UserRepository:
             "id": local_result["id"]["value"],
             "name": local_result["name"]["value"],
             "username": local_result["user"]["value"].split("#")[-1],
-            "email": local_result["email"]["value"],
             "phone": local_result["phone"]["value"]
         }
 
@@ -51,7 +50,6 @@ class UserRepository:
             
             OPTIONAL {
                 ?user users:name ?name .
-                ?user users:email ?email .
                 ?user users:phone ?phone .
                 ?user users:password ?password .
             }
@@ -75,7 +73,6 @@ class UserRepository:
             ?user users:name ?name .
 
             OPTIONAL {{
-                ?user users:email ?email .
                 ?user users:phone ?phone .
                 ?user users:password ?password .
             }}
@@ -98,7 +95,6 @@ class UserRepository:
             users:{username} users:name ?name .
 
             OPTIONAL {{
-                users:{username} users:email ?email .
                 users:{username} users:phone ?phone .
                 users:{username} users:password ?password .
             }}
@@ -119,7 +115,6 @@ class UserRepository:
         PREFIX users: <http://www.semanticweb.org/ontologies/users#>
         INSERT DATA {{
             users:{user["username"]} rdf:type users:User ;
-            users:email "{user["email"]}" ;
             users:name "{user["name"]}" ;
             users:phone "{user["phone"]}" ;
             users:password "{user["password"]}" ;
@@ -130,20 +125,3 @@ class UserRepository:
         self.fuseki_client.execute(query)
 
         return user
-
-    def insert_visitor(self, visitor):
-        visitor["id"] = get_uuid()
-
-        query = f"""
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX users: <http://www.semanticweb.org/ontologies/users#>
-        INSERT DATA {{
-            users:{visitor["name"]} rdf:type users:User ;
-            users:email "{visitor["name"]}" ;
-            users:id "{visitor["id"]}" .
-        }}
-        """
-
-        self.fuseki_client.execute(query)
-
-        return visitor
