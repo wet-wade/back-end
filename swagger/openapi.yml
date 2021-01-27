@@ -119,12 +119,12 @@ paths:
       tags:
         - Group
         
-  /groups/{groupId}/devices:
+  /groups/{group_id}/devices:
     post:
       description: Add a new device to this group
       operationId: controllers.group_controller.add_device
       parameters:
-        - name: groupId
+        - name: group_id
           in: path
           required: true
           schema:

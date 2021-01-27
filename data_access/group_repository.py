@@ -3,6 +3,7 @@ import random
 from controllers.controller_utils import encrypt_password, get_uuid, known_devices
 from data_access.device_repository import DeviceRepository
 from data_access.fuseki_client import FusekiClient
+from data_access.permission_repository import PermissionRepository
 
 
 class GroupRepository:
@@ -202,6 +203,15 @@ class GroupRepository:
         return current_devices
 
     @staticmethod
+    def parse_group_members_csv(results):
+        current_members = []
+
+        for line in results.decode("utf-8").strip().split("\r\n")[1:]:
+            current_members.append(line.split("#")[-1])
+
+        return current_members
+
+    @staticmethod
     def compute_sparql_devices(prefix, device_ids):
         result = ""
         for device_id in device_ids:
@@ -221,12 +231,12 @@ class GroupRepository:
                 }}
             """
         results = self.fuseki_client.query(query, "csv")
-
         return self.parse_group_devices_csv(results)
 
     def insert_new_device(self, group_id, device_id):
         current_devices = self.get_group_devices(group_id)
         current_devices.append(device_id)
+        current_members = self.get_group_members(group_id)
 
         insert = f"""
                 PREFIX devices: <http://www.semanticweb.org/ontologies/devices#>
@@ -240,6 +250,33 @@ class GroupRepository:
             """
 
         self.fuseki_client.execute(insert)
+
+        for member in current_members:
+            PermissionRepository().add_permission(group_id, {
+                "deviceId": device_id,
+                "memberId": member,
+                "manage": "1",
+                "read": "1",
+                "write": "1"
+            })
+
+    def get_group_members(self, group_id):
+        query = f"""
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX devices: <http://www.semanticweb.org/ontologies/devices#> 
+                PREFIX groups: <http://www.semanticweb.org/ontologies/groups#> 
+                PREFIX users: <http://www.semanticweb.org/ontologies/users#> 
+
+                SELECT ?member_id
+                    WHERE {{
+                        ?group groups:id "8cbbc285-555-4dd7-8bc2-6e5116sdf71d9" .
+                        ?group groups:hasMember ?member .
+                        ?member users:id ?member_id .
+                        ?member users:name ?member_name .
+              }}
+            """
+        results = self.fuseki_client.query(query, "csv")
+        return self.parse_group_members_csv(results)
 
     def discover(self, group_id):
 
