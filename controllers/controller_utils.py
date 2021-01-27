@@ -1,3 +1,4 @@
+import random
 import uuid
 
 import jwt
@@ -23,6 +24,17 @@ known_devices = {
     "outlet": ["Amazon Smart Plug", "DELTACO", "Tuya Smart Plug"]
 
 }
+
+
+def mock_property_value_by_type(type):
+    # we refer to the availability as if the device has power or not
+    if type == "available":
+        return random.random() >= 20
+    elif type == "status":
+        return "on" if random.random() >= 50 else "off"
+    elif type == "temperature":
+        return round(random.uniform(10, 30) * 2) / 2
+
 
 pwd_context = CryptContext(
     schemes=["pbkdf2_sha256"],
