@@ -103,12 +103,12 @@ class PermissionRepository:
         {self.prefixes}
         INSERT DATA {{
             permissions:{id} rdf:Type permissions:Permission;
-                permissions:id "{id}"
-                permissions:deviceId "{permission["deviceId"]}" .
-                permissions:memberId "{permission["memberId"]}" .
-                permissions:manage "{permission["manage"]}" .
-                permissions:read "{permission["read"]}" .
-                permissions:write "{permission["write"]}" .
+                permissions:id "{id}" ;
+                permissions:deviceId "{permission["deviceId"]}" ;
+                permissions:memberId "{permission["memberId"]}" ;
+                permissions:manage "{permission["manage"]}" ;
+                permissions:read "{permission["read"]}" ;
+                permissions:write "{permission["write"]}" ;
         }};
 
         INSERT DATA {{

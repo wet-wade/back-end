@@ -258,6 +258,3 @@ class GroupRepository:
             devices.append(device)
 
         return devices
-
-        # TODO PETRU!!
-        # TODO trebuie construita legatura cu grupul la care le inseram
