@@ -29,7 +29,7 @@ def login():
 
     return {
         "user": user,
-        "authToken": f"{token.decode('utf-8')}"
+        "token": f"{token.decode('utf-8')}"
     }
 
 
@@ -50,7 +50,7 @@ def register():
 
         return {
             "user": user,
-            "authToken": f"{token.decode('utf-8')}"
+            "token": f"{token.decode('utf-8')}"
         }
     except:
         return server_error

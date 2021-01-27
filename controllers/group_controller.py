@@ -15,13 +15,17 @@ group_controller = Blueprint('group_controller', __name__)
 @group_controller.route("/", methods=["GET"])
 @jwt_required()
 def get_groups():
-    return flask.jsonify(GroupRepository().get_groups_summary_by_user(current_identity["id"]))
+    return flask.jsonify({
+        "groups": GroupRepository().get_groups_summary_by_user(current_identity["id"])
+    })
 
 
 @group_controller.route("/<group_id>", methods=["GET"])
 @jwt_required()
 def get_group(group_id):
-    return flask.jsonify(GroupRepository().get_group(group_id))
+    return flask.jsonify({
+        "device": GroupRepository().get_group(group_id)
+    })
 
 
 @group_controller.route("/<group_id>/summary", methods=["GET"])
@@ -45,9 +49,11 @@ def create_group():
     model = request.json
 
     try:
-        result = GroupRepository().create_group(model)
+        group_id = GroupRepository().create_group(model["name"])
 
-        return flask.jsonify(result)
+        return flask.jsonify({
+            "group": GroupRepository().get_group_summary_by_group(group_id)
+        })
     except:
         return server_error
 

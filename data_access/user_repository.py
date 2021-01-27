@@ -108,7 +108,7 @@ class UserRepository:
 
         result = self.fuseki_client.query(query)
 
-        return self.parse_json_result(result["results"]["bindings"], add_password)
+        return self.parse_json_result(result["results"]["bindings"], add_password=True)
 
     def insert_user(self, user):
         user["id"] = get_uuid()
