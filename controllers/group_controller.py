@@ -1,6 +1,7 @@
 import flask
-
 from flask import Blueprint, request
+from flask_jwt import jwt_required, current_identity
+
 from controllers.controller_utils import page_not_found, server_error, MapCommand, bad_request
 from data_access.group_repository import GroupRepository
 from data_access.permission_repository import PermissionRepository
@@ -9,26 +10,31 @@ group_controller = Blueprint('group_controller', __name__)
 
 
 @group_controller.route("/", methods=["GET"])
+@jwt_required()
 def get_groups():
-    return flask.jsonify(GroupRepository().get_groups_summary_by_user("b956b391-c333-4017-967a-627fa6bd90a1"))
+    return flask.jsonify(GroupRepository().get_groups_summary_by_user(current_identity["id"]))
 
 
 @group_controller.route("/<group_id>", methods=["GET"])
+@jwt_required()
 def get_group(group_id):
     return flask.jsonify(GroupRepository().get_group(group_id))
 
 
 @group_controller.route("/<group_id>/summary", methods=["GET"])
+@jwt_required()
 def get_group_summary(group_id):
     return flask.jsonify(GroupRepository().get_group_summary_by_group(group_id))
 
 
 @group_controller.route("/<group_id>/discover", methods=["GET"])
+@jwt_required()
 def discover(group_id):
     return flask.jsonify(GroupRepository().discover(group_id))
 
 
 @group_controller.route("/", methods=["POST"])
+@jwt_required()
 def create_group():
     if not request.json:
         return page_not_found
@@ -44,6 +50,7 @@ def create_group():
 
 
 @group_controller.route("/<group_id>/devices", methods=["POST"])
+@jwt_required()
 def add_device(group_id):
     if not request.json:
         return page_not_found
@@ -57,6 +64,7 @@ def add_device(group_id):
 
 
 @group_controller.route("/<group_id>/members", methods=["POST"])
+@jwt_required()
 def join_group(group_id):
     if not request.json:
         return page_not_found
@@ -67,6 +75,7 @@ def join_group(group_id):
 
 
 @group_controller.route("/<group_id>/permissions", methods=["POST"])
+@jwt_required()
 def set_permissions(group_id):
     if not request.json:
         return page_not_found
@@ -74,7 +83,7 @@ def set_permissions(group_id):
         return bad_request
 
     model = request.json["permissions"]
-    user_id = request.json["userId"]
+    user_id = current_identity["id"]
 
     result = PermissionRepository().set_permission(group_id, user_id, model)
 
@@ -82,6 +91,7 @@ def set_permissions(group_id):
 
 
 @group_controller.route("/<group_id>/devices/<device_id>/command", methods=["POST"])
+@jwt_required()
 def control_device(group_id, device_id):
     body = request.get_json()
     command = body["command"]

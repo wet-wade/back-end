@@ -1,8 +1,4 @@
-import json
-
-from SPARQLWrapper import SPARQLWrapper, CSV, JSON, TURTLE
-from rdflib import Graph, plugin
-from rdflib.serializer import Serializer
+from SPARQLWrapper import SPARQLWrapper, JSON
 
 
 class FusekiClient:

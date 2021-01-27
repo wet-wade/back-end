@@ -1,5 +1,6 @@
 import uuid
 
+import jwt
 from flask import Response
 from passlib.context import CryptContext
 from models.constants import DeviceCommand
@@ -40,6 +41,10 @@ def encrypt_password(password):
 
 def check_encrypted_password(password, hashed_password):
     return pwd_context.verify(password, hashed_password)
+
+
+def get_token_info(token):
+    return jwt.decode(token, 'very-super-secret')
 
 
 def ValidateAttribute(x, attribute):
