@@ -60,7 +60,7 @@ class UserRepository:
 
         return self.parse_json_results(results)
 
-    def get_user(self, id):
+    def get_user_by_id(self, id):
         query = f"""
         PREFIX users: <http://www.semanticweb.org/ontologies/users#>
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -70,6 +70,26 @@ class UserRepository:
                     users:id "{id}" .
             ?user users:id ?id .
             ?user users:name ?name .
+            ?user users:email ?email .
+            ?user users:phone ?phone .
+            ?user users:password ?password .
+        }}
+        LIMIT 1
+        """
+
+        result = self.fuseki_client.query(query)
+
+        return self.parse_json_result(result["results"]["bindings"])
+
+    def get_user_by_username(self, username):
+        query = f"""
+        PREFIX users: <http://www.semanticweb.org/ontologies/users#>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        SELECT *
+        WHERE {{
+            ?user rdf:type users:User ;
+            ?user users:id ?id .
+            ?user users:name "{username}" .
             ?user users:email ?email .
             ?user users:phone ?phone .
             ?user users:password ?password .

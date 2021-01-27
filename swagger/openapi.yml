@@ -270,7 +270,7 @@ paths:
   /auth/login:
     post:
       description: Authenticate via username and password
-      operationId: controllers.user_controller.login
+      operationId: controllers.auth_controller.login
       requestBody:
         content:
           application/json:
@@ -294,12 +294,12 @@ paths:
                   token:
                     type: string
       tags:
-        - User
+        - Auth
         
   /auth/token:
     post:
       description: Authenticate via token
-      operationId: controllers.user_controller.auth_token
+      operationId: controllers.auth_controller.auth_token
       requestBody:
         content:
           application/json:
@@ -319,12 +319,12 @@ paths:
                   user:
                     $ref: '#/components/schemas/User'
       tags:
-        - User
+        - Auth
         
   /auth/register:
     post:
       description: Register new user
-      operationId: controllers.user_controller.register
+      operationId: controllers.auth_controller.register
       requestBody:
         content:
           application/json:
@@ -350,7 +350,7 @@ paths:
                   token:
                     type: string
       tags:
-        - User
+        - Auth
 
 components:
   schemas:

@@ -1,5 +1,6 @@
 import flask
 from flask import Blueprint, request
+from flask_jwt import jwt_required
 
 from controllers.controller_utils import page_not_found, server_error
 from data_access.user_repository import UserRepository
@@ -7,6 +8,7 @@ from data_access.user_repository import UserRepository
 user_controller = Blueprint('user_controller', __name__)
 
 
+@jwt_required()
 @user_controller.route("/")
 def get_users():
     return flask.jsonify(UserRepository().get_users())
@@ -14,7 +16,7 @@ def get_users():
 
 @user_controller.route('/<user_id>', methods=['GET'])
 def get_user(user_id):
-    return flask.jsonify(UserRepository().get_user(user_id))
+    return flask.jsonify(UserRepository().get_user_by_id(user_id))
 
 
 @user_controller.route("/", methods=['POST'])
