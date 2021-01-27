@@ -3,73 +3,123 @@ info:
   version: 1.0.0
   title: wet-wade
   description: An API used to manage and control the existing IoT devices currently connected at local level
-paths:
-#  /groups/<group_id>/devices/<device_id>/command:
-#    post:
-#      description: A command will be executed by a device capable of that functionality
-#      operationId: controllers.group_controller.control_device
-#      parameters:
-#        - name: device_id
-#          in: path
-#          required: true
-#          schema:
-#            type: string
-#        - name: group_id
-#          in: path
-#          required: true
-#          schema:
-#            type: string
-#      requestBody:
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              type: object
-#              required:
-#                - command
-#              properties:
-#                command:
-#                  type: string
-#                input:
-#                  oneOf:
-#                    - type: integer
-#                    - type: boolean
-#      responses:
-#        '200':
-#          description: Successfully executed the given command
-#          content:
-#            application/json:
-#              schema:
-#                type: object
-#                additionalProperties:
-#                  type: string
-#                example:
-#                  device_parameter: device_value
-#      tags:
-#        - Group
 
-  /devices/discover:
-      get:
-        description: Display all the connected devices to the network
-        operationId: controllers.device_controller.Discover
-        responses:
-          '200':
-            description: Successfully retrieved all the connected devices to the network
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      name:
-                        type: string
-                      type:
-                        type: string
-        tags:
-          - Device
+paths:
+  /groups/{groupId}/devices/{deviceId}/command:
+    post:
+      description: A command will be executed by a device capable of that functionality
+      operationId: controllers.group_controller.control_device
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - command
+              properties:
+                command:
+                  type: string
+                  enum: [ON, OFF, SET_TEMPERATURE, LOCL, UNLOCK]
+                input:
+                  oneOf:
+                    - type: object
+                      properties:
+                        temperature:
+                          type: number
+                    - type: object
+                      properties:
+                        locked:
+                          type: boolean
+      responses:
+        '200':
+          description: Successfully executed the given command
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  device:
+                    $ref: '#/components/schemas/SavedDevice'
+      tags:
+        - Group
+        - Device
+  
+  /groups/{groupId}/permissions:
+    post:
+      description: Permissions for specified member and device will get updated
+      operationId: controllers.group_controller.set_permissions
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePermission'
+      responses:
+        '200':
+          description: Successfully executed the given command
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group:
+                    $ref: '#/components/schemas/Group'
+      tags:
+        - Group
+
+
+  /groups/{groupId}/members:
+    post:
+      description: Add a new member to the group, either by authorization token or by specifyig a name and adding a temp user
+      operationId: controllers.group_controller.join_group
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Successfully executed the given command
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  visitor:
+                    $ref: '#/components/schemas/GroupMember'
+                  token:
+                    type: string
+      tags:
+        - Group
+
 
 #  /groups/<group_id>:
 #      post:
@@ -142,3 +192,82 @@ paths:
 #                      type: object
 #        tags:
 #          - Group
+components:
+  schemas:
+    Device:
+      type: object
+      properties:
+        id: 
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [lightbulb, hvac, door, outlet]
+    SavedDevice:
+      allOf:
+        - $ref: '#/components/schemas/Device'
+        - type: object
+          properties:
+            nickname:
+              type: string
+            status: 
+              type: string
+              enum: [on, off]
+            available:
+              type: boolean
+            data:
+              type: object
+              description: This property is present only if the device type is door or hvac, and it contains "locked" respectively "temperature"
+    DevicePermission:
+      type: object
+      properties:
+        memberId:
+          type: string
+        deviceId:
+          type: string
+        manage:
+          type: boolean
+        read:
+          type: boolean
+        write:
+          type: boolean
+    GroupMember:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    User:
+      allOf:
+        - $ref: '#/components/schemas/GroupMember'
+        - type: object
+          properties:
+            username:
+              type: string
+            phone:
+              type: string
+      
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+        ownerId:
+          type: string
+        name:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupMember'
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavedDevice'
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevicePermission'  
+            
