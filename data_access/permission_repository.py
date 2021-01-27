@@ -106,9 +106,9 @@ class PermissionRepository:
                 permissions:id "{id}" ;
                 permissions:deviceId "{permission["deviceId"]}" ;
                 permissions:memberId "{permission["memberId"]}" ;
-                permissions:manage "{permission["manage"]}" ;
-                permissions:read "{permission["read"]}" ;
-                permissions:write "{permission["write"]}" ;
+                permissions:manage "{int(permission["manage"])}" ;
+                permissions:read "{int(permission["read"])}" ;
+                permissions:write "{int(permission["write"])}" ;
         }};
 
         INSERT DATA {{
@@ -131,9 +131,9 @@ class PermissionRepository:
         INSERT {{
             ?permissions permissions:memberId "{permission["memberId"]}" .
             ?permissions permissions:deviceId "{permission["deviceId"]}" .
-            ?permissions permissions:manage "{permission["manage"]}" .
-            ?permissions permissions:read "{permission["read"]}" .
-            ?permissions permissions:write "{permission["write"]}" .
+            ?permissions permissions:manage "{int(permission["manage"])}" .
+            ?permissions permissions:read "{int(permission["read"])}" .
+            ?permissions permissions:write "{int(permission["write"])}" .
         }}   
         WHERE {{
             ?group rdf:type groups:Group ;
