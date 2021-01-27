@@ -203,6 +203,15 @@ class GroupRepository:
         return current_devices
 
     @staticmethod
+    def parse_users_csv(results):
+        users = []
+
+        for line in results.decode("utf-8").strip().split("\r\n")[1:]:
+            users.append(line.split("#")[-1])
+
+        return users
+
+    @staticmethod
     def parse_group_members_csv(results):
         current_members = []
 
@@ -295,3 +304,81 @@ class GroupRepository:
             devices.append(device)
 
         return devices
+
+    def create_visitor(self, user_id, group_id, user_name):
+        current_members_names = self.get_group_members_name(group_id)
+        current_members_names.append(user_name)
+
+        insert = f"""
+                PREFIX users: <http://www.semanticweb.org/ontologies/users#> 
+                PREFIX groups: <http://www.semanticweb.org/ontologies/groups#>
+
+                DELETE WHERE {{
+                    groups:{group_id} groups:hasMember ?object
+                }}; 
+
+                INSERT DATA {{
+                  users:{user_name} a users:User .
+                  users:{user_name} users:id "{user_id}" .
+                  users:{user_name} users:password "" .
+                  users:{user_name} users:phone "" .
+                  users:{user_name} users:email "" .
+                  users:{user_name} users:name "{user_name}" .
+                  groups:{group_id} groups:hasMember {self.compute_sparql_group_members('users', current_members_names)}
+                }}
+            """
+
+        self.fuseki_client.execute(insert)
+
+    def get_group_members_name(self, group_id):
+        query = f"""
+                PREFIX groups: <http://www.semanticweb.org/ontologies/groups#> 
+                SELECT ?object WHERE
+                {{
+                    groups:{group_id} groups:hasMember ?object
+                }}
+            """
+        results = self.fuseki_client.query(query, "csv")
+        return self.parse_group_members_csv(results)
+
+    @staticmethod
+    def compute_sparql_group_members(prefix, members_name):
+        result = ""
+
+        for name in members_name:
+            if len(result) == 0:
+                result = f"{prefix}:{name}"
+            else:
+                result = f"{result} , {prefix}:{name}"
+
+        return result
+
+    def insert_user_group(self, group_id, user_name):
+        current_members_names = self.get_group_members_name(group_id)
+        current_members_names.append(user_name)
+
+        insert = f"""
+                PREFIX devices: <http://www.semanticweb.org/ontologies/devices#>
+                PREFIX groups: <http://www.semanticweb.org/ontologies/groups#>
+                DELETE WHERE {{
+                    groups:{group_id} groups:hasMember ?object
+                }};  
+                INSERT DATA {{
+                    groups:{group_id} groups:hasMember {self.compute_sparql_group_members('users', current_members_names)}
+                }}
+            """
+
+        self.fuseki_client.execute(insert)
+
+    def find_user(self, user_id):
+        query = f"""
+                PREFIX groups: <http://www.semanticweb.org/ontologies/groups#> 
+                SELECT ?user {{
+                  ?user users:id "{user_id}" .
+                }}
+            """
+        results = self.fuseki_client.query(query, "csv")
+        if len(self.parse_users_csv(results)) == 0:
+            return False
+        else:
+            return True

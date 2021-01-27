@@ -85,12 +85,12 @@ paths:
         - Group
 
 
-  /groups/{groupId}/members:
+  /groups/{group_id}/members:
     post:
       description: Add a new member to the group, either by authorization token or by specifyig a name and adding a temp user
       operationId: controllers.group_controller.join_group
       parameters:
-        - name: groupId
+        - name: group_id
           in: path
           required: true
           schema:

@@ -1,8 +1,11 @@
 import flask
+import jwt
+import redis
+
 from flask import Blueprint, request
 from flask_jwt import jwt_required, current_identity
-
-from controllers.controller_utils import page_not_found, server_error, MapCommand, bad_request
+from controllers.controller_utils import page_not_found, server_error, MapCommand, bad_request, get_uuid, unauthorized, \
+    ok
 from data_access.group_repository import GroupRepository
 from data_access.permission_repository import PermissionRepository
 
@@ -64,14 +67,38 @@ def add_device(group_id):
 
 
 @group_controller.route("/<group_id>/members", methods=["POST"])
-@jwt_required()
+# @jwt_required()
 def join_group(group_id):
     if not request.json:
         return page_not_found
 
-    model = request.json
+    if 'Authorization' not in request.headers:
+        user_name = request.json["name"]
+        user_id = get_uuid()
+        token = jwt.encode({
+            'userId': user_id,
+            'name': user_name
+        }, 'very-super-secret')
+        response = {
+            "visitor": {
+                "userId": user_id,
+                "name": user_name
+            },
+            "token": token.decode("utf-8")
+        }
 
-    return flask.jsonify(model)
+        GroupRepository().create_visitor(user_id, group_id, user_name)
+
+        return flask.jsonify(response)
+    else:
+        token = jwt.decode()
+        user_id = token["userId"]
+        user_name = token["name"]
+        if not GroupRepository().find_user(user_id):
+            return unauthorized
+        else:
+            GroupRepository().insert_user_group(group_id, user_name)
+            return ok
 
 
 @group_controller.route("/<group_id>/permissions", methods=["POST"])
