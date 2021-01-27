@@ -1,9 +1,20 @@
-from controllers.controller_utils import encrypt_password, get_uuid
+import random
+
+from controllers.controller_utils import encrypt_password, get_uuid, known_devices
+from data_access.device_repository import DeviceRepository
 from data_access.fuseki_client import FusekiClient
 
 
 class GroupRepository:
     fuseki_client = None
+
+    prefixes = """
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX groups: <http://www.semanticweb.org/ontologies/groups#>
+    PREFIX users: <http://www.semanticweb.org/ontologies/users#>
+    PREFIX devices: <http://www.semanticweb.org/ontologies/devices#>
+    PREFIX permissions: <http://www.semanticweb.org/ontologies/permissions#>
+    """
 
     def __init__(self):
         self.fuseki_client = FusekiClient()
@@ -11,13 +22,14 @@ class GroupRepository:
     @staticmethod
     def parse_detailed_csv_results(results):
         res = {}
+        device_repository = DeviceRepository()
 
         for line in results.decode("utf-8").strip().split("\r\n")[1:]:
             group, name, id, owner, owner_id, owner_name, \
             member, member_id, member_name, \
-            device, device_id, device_name, \
+            device, device_id, device_name, device_nickname, device_type, \
             permissions, permission_device_id, permission_member_id, \
-            permission_can_manage, permission_can_read, permission_can_write = line.split(',')
+            permission_manage, permission_read, permission_write = line.split(',')
 
             if not res:
                 res = {
@@ -29,27 +41,44 @@ class GroupRepository:
                     "permissions": []
                 }
 
-            res["members"].append({
-                "id": member_id,
-                "name": member_name
-            })
+            if member_id != "" or member_name != "":
+                member_filtering = list(filter(lambda prop: prop["id"] == member_id, res["members"]))
+                if not member_filtering:
+                    res["members"].append({
+                        "id": member_id,
+                        "name": member_name
+                    })
 
-            if device != "" or device_id != "" or device_name != "":
-                res["devices"].append({
-                    "id": device_id,
-                    "username": device.split("#")[-1],
-                    "name": device_name
-                })
+            if device != "" or device_id != "" or device_name != "" or device_nickname != "" or device_type != "":
+                device_filtering = list(filter(lambda prop: prop["id"] == device_id, res["devices"]))
+                device_type = device_type.split("#")[-1]
+                if not device_filtering:
+                    device_definition = device_repository.get_device_definition_by_type(device_type)
 
-            if permission_device_id != "" or permission_member_id != "" or permission_can_manage != "" \
-                    or permission_can_read != "" or permission_can_write:
-                res["permissions"].append({
-                    "deviceId": permission_device_id,
-                    "memberId": permission_member_id,
-                    "canManage": permission_can_manage,
-                    "canRead": permission_can_read,
-                    "canWrite": permission_can_write,
-                })
+                    res["devices"].append({
+                        "id": device_id,
+                        "name": device_name,
+                        "nickname": device_nickname,
+                        "type": device_type,
+                        "title": device_definition["title"],
+                        "properties": device_definition["properties"],
+                        "actions": device_definition["actions"]
+                    })
+
+            if permission_device_id != "" or permission_member_id != "" or permission_manage != "" \
+                    or permission_read != "" or permission_write != "":
+                permission_id = permissions.split("#")[-1]
+                permission_filtering = list(filter(lambda prop: prop["id"] == permission_id, res["permissions"]))
+
+                if not permission_filtering:
+                    res["permissions"].append({
+                        "id": permission_id,
+                        "deviceId": permission_device_id,
+                        "memberId": permission_member_id,
+                        "manage": permission_manage,
+                        "read": permission_read,
+                        "write": permission_write,
+                    })
 
         return res
 
@@ -70,13 +99,9 @@ class GroupRepository:
 
         return res_list
 
-    def get_groups_by_user(self, user_id):
+    def get_groups_summary_by_user(self, user_id):
         query = f"""
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX groups: <http://www.semanticweb.org/ontologies/groups#>
-        PREFIX users: <http://www.semanticweb.org/ontologies/users#>
-        PREFIX devices: <http://www.semanticweb.org/ontologies/devices#>
-        PREFIX permissions: <http://www.semanticweb.org/ontologies/permissions#>
+        {self.prefixes}
         SELECT ?name ?id ?owner_id
         WHERE {{
             ?group groups:name ?name .
@@ -92,14 +117,27 @@ class GroupRepository:
 
         return self.parse_summary_csv_results(results)
 
+    def get_group_summary_by_group(self, group_id):
+        query = f"""
+        {self.prefixes}
+        SELECT ?name ?id ?owner_id
+        WHERE {{
+            ?group groups:name ?name .
+            ?group groups:id "{group_id}" .
+    		?group groups:isOwnedBy ?owner .
+    		?owner users:id ?owner_id .
+            ?group groups:hasMember ?member .
+        }}
+            """
+
+        results = self.fuseki_client.query(query, "csv")
+
+        return self.parse_summary_csv_results(results)[0]
+
     def get_group(self, group_id):
 
         query = f"""
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX groups: <http://www.semanticweb.org/ontologies/groups#>
-        PREFIX users: <http://www.semanticweb.org/ontologies/users#>
-        PREFIX devices: <http://www.semanticweb.org/ontologies/devices#>
-        PREFIX permissions: <http://www.semanticweb.org/ontologies/permissions#>
+        {self.prefixes}
         SELECT *
         WHERE {{
             ?group rdf:type groups:Group ;
@@ -114,16 +152,21 @@ class GroupRepository:
             ?member users:name ?member_name .
             
             OPTIONAL {{
-                ?group groups:devices ?devices .
-                ?devices devices:id ?device_id .
-                ?devices devices:name ?device_name .
-                ?group groups:permissions ?permissions .
+        		?group groups:consistsOf ?device .
+                ?device devices:id ?device_id .
+                ?device devices:name ?device_name .
+        		?device devices:nickname ?device_nickname .
+                ?device a ?device_type .
+      		}}
+    
+    		OPTIONAL {{
+                ?group groups:hasPermission ?permissions .
                 ?permissions permissions:deviceId ?permission_device_id .
                 ?permissions permissions:memberId ?permission_member_id .
-                ?permissions permissions:canManage ?permission_can_manage .
-                ?permissions permissions:canRead ?permission_can_read .
-                ?permissions permissions:canWrite ?permission_can_write .
-            }}
+                ?permissions permissions:manage ?permission_can_manage .
+                ?permissions permissions:read ?permission_can_read .
+                ?permissions permissions:write ?permission_can_write .
+      		}}
         }}
         """
 
@@ -135,9 +178,7 @@ class GroupRepository:
         group["id"] = get_uuid()
 
         query = f"""
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX groups: <http://www.semanticweb.org/ontologies/groups#>
-        PREFIX users: <http://www.semanticweb.org/ontologies/users#>
+        {self.prefixes}
         INSERT DATA {{
             groups:{group["id"]} rdf:type groups:Group ;
                 groups:name "{group["name"]}" ;
@@ -199,3 +240,24 @@ class GroupRepository:
             """
 
         self.fuseki_client.execute(insert)
+
+    def discover(self, group_id):
+
+        device_repo = DeviceRepository()
+        devices = []
+
+        for k, devices in known_devices.items():
+            device = {
+                "id": get_uuid(),
+                "nickname": "",
+                "name": random.choice(known_devices[k]),
+                "type": k
+            }
+
+            device_repo.insert_device(device)
+            devices.append(device)
+
+        return devices
+
+        # TODO PETRU!!
+        # TODO trebuie construita legatura cu grupul la care le inseram

@@ -16,14 +16,14 @@
             "readOnly": true,
             "@type": "saref:OnOffState",
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/state"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/state"
             }]
         },
         "available": {
             "readOnly": true,
             "@type": "saref:Property",
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/available"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/available"
             }]
         },
         "temperature": {
@@ -32,7 +32,7 @@
             "minimum": 10.0,
             "maximum": 50.0,
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/temperature"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/temperature"
             }]
         }
     },
@@ -40,19 +40,19 @@
         "close": {
             "@type": "saref:OffCommand",
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/off"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/off"
             }]
         },
         "open": {
             "@type": "saref:OnCommand",
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/on"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/on"
             }]
         },
         "setTemperature" : {
             "@type": "saref:Command",
             "forms": [{
-                "href": "https://wet-wade.herokuapp.com/{id}/setTemperature"
+                "href": "https://wet-wade.herokuapp.com/{group_id}/devices/{device_id}/setTemperature"
             }]
         }
     }

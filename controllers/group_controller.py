@@ -1,15 +1,16 @@
 import flask
 
 from flask import Blueprint, request
-from controllers.controller_utils import page_not_found, server_error, MapCommand
+from controllers.controller_utils import page_not_found, server_error, MapCommand, bad_request
 from data_access.group_repository import GroupRepository
+from data_access.permission_repository import PermissionRepository
 
 group_controller = Blueprint('group_controller', __name__)
 
 
 @group_controller.route("/", methods=["GET"])
 def get_groups():
-    return flask.jsonify(GroupRepository().get_groups_by_user("b956b391-c333-4017-967a-627fa6bd90a1"))
+    return flask.jsonify(GroupRepository().get_groups_summary_by_user("b956b391-c333-4017-967a-627fa6bd90a1"))
 
 
 @group_controller.route("/<group_id>", methods=["GET"])
@@ -17,9 +18,14 @@ def get_group(group_id):
     return flask.jsonify(GroupRepository().get_group(group_id))
 
 
+@group_controller.route("/<group_id>/summary", methods=["GET"])
+def get_group_summary(group_id):
+    return flask.jsonify(GroupRepository().get_group_summary_by_group(group_id))
+
+
 @group_controller.route("/<group_id>/discover", methods=["GET"])
 def discover(group_id):
-    return f"Discovering devices in Group {group_id}"
+    return flask.jsonify(GroupRepository().discover(group_id))
 
 
 @group_controller.route("/", methods=["POST"])
@@ -64,8 +70,12 @@ def join_group(group_id):
 def set_permissions(group_id):
     if not request.json:
         return page_not_found
+    if not request.json.get("permissions", None):
+        return bad_request
 
-    model = request.json
+    model = request.json["permissions"]
+
+    PermissionRepository().add_permission(group_id, model)
 
     return flask.jsonify(model)
 
