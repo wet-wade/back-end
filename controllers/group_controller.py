@@ -12,7 +12,9 @@ group_controller = Blueprint('group_controller', __name__)
 @group_controller.route("/", methods=["GET"])
 @jwt_required()
 def get_groups():
-    return flask.jsonify(GroupRepository().get_groups_summary_by_user(current_identity["id"]))
+    return flask.jsonify({
+        "groups": GroupRepository().get_groups_summary_by_user(current_identity["id"])
+    })
 
 
 @group_controller.route("/<group_id>", methods=["GET"])

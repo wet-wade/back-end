@@ -5,17 +5,18 @@ info:
   description: An API used to manage and control the existing IoT devices currently connected at local level
 
 paths:
-  /groups/{groupId}/devices/{deviceId}/command:
+  /groups/{group_Id}/devices/{device_Id}/command:
     post:
       description: A command will be executed by a device capable of that functionality
       operationId: controllers.group_controller.control_device
       parameters:
-        - name: deviceId
+        - name: device_
+        - Id
           in: path
           required: true
           schema:
             type: string
-        - name: groupId
+        - name: group_Id
           in: path
           required: true
           schema:
@@ -55,12 +56,12 @@ paths:
       tags:
         - Device
   
-  /groups/{groupId}/permissions:
+  /groups/{group_Id}/permissions:
     post:
       description: Permissions for specified member and device will get updated
       operationId: controllers.group_controller.set_permissions
       parameters:
-        - name: groupId
+        - name: group_Id
           in: path
           required: true
           schema:
@@ -85,12 +86,12 @@ paths:
         - Group
 
 
-  /groups/{groupId}/members:
+  /groups/{group_Id}/members:
     post:
       description: Add a new member to the group, either by authorization token or by specifyig a name and adding a temp user
       operationId: controllers.group_controller.join_group
       parameters:
-        - name: groupId
+        - name: group_Id
           in: path
           required: true
           schema:
@@ -152,12 +153,12 @@ paths:
       tags:
         - Device
 
-  /groups/{groupId}/discover:
+  /groups/{group_Id}/discover:
     get:
       description: Discover devices and associate available devices with this group
       operationId: controllers.group_controller.discover
       parameters:
-        - name: groupId
+        - name: group_Id
           in: path
           required: true
           schema:
@@ -221,12 +222,12 @@ paths:
       tags:
         - Group
 
-  /groups/{groupId}/summary:
+  /groups/{group_Id}/summary:
     get:
       description: Get group summary info
       operationId: controllers.group_controller.get_group_summary
       parameters:
-        - name: groupId
+        - name: group_Id
           in: path
           required: true
           schema:
@@ -244,12 +245,12 @@ paths:
       tags:
         - Group
         
-  /groups/{groupId}:
+  /groups/{group_Id}:
     get:
       description: Get group info
       operationId: controllers.group_controller.get_group
       parameters:
-        - name: groupId
+        - name: group_Id
           in: path
           required: true
           schema:
