@@ -53,7 +53,6 @@ paths:
                   device:
                     $ref: '#/components/schemas/SavedDevice'
       tags:
-        - Group
         - Device
   
   /groups/{groupId}/permissions:
@@ -74,7 +73,7 @@ paths:
               $ref: '#/components/schemas/DevicePermission'
       responses:
         '200':
-          description: Successfully executed the given command
+          description: Successfully updated the permissions
           content:
             application/json:
               schema:
@@ -107,7 +106,7 @@ paths:
                   type: string
       responses:
         '200':
-          description: Successfully executed the given command
+          description: Successfully joined group
           content:
             application/json:
               schema:
@@ -119,79 +118,155 @@ paths:
                     type: string
       tags:
         - Group
+        
+  /groups/{groupId}/devices:
+    post:
+      description: Add a new device to this group
+      operationId: controllers.group_controller.add_device
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+                nickname:
+                  type: string
+      responses:
+        '200':
+          description: Successfully inserted specified device with nickname
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  device:
+                    $ref: '#/components/schemas/SavedDevice'
+      tags:
+        - Device
 
+  /groups/{groupId}/discover:
+    get:
+      description: Discover devices and associate available devices with this group
+      operationId: controllers.group_controller.discover
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Got the list of available devices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  devices:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Device'
+      tags:
+        - Device
 
-#  /groups/<group_id>:
-#      post:
-#        description: Adds a device to a particular group
-#        operationId: controllers.group_controller.add_device
-#        parameters:
-#          - name: group_id
-#            in: path
-#            required: true
-#            schema:
-#              type: string
-#        requestBody:
-#          required: true
-#          content:
-#            application/json:
-#              schema:
-#                type: object
-#                required:
-#                  - deviceId
-#                  - nickname
-#                properties:
-#                  deviceId:
-#                    type: string
-#                  nickname:
-#                    type: string
-#        responses:
-#          '200':
-#            description: Successfully added a device to the group
-#
-#            content:
-#              application/json:
-#                schema:
-#                  type: object
-#                  properties:
-#                    id:
-#                      type: string
-#                    nickname:
-#                      type: string
-#        tags:
-#          - Group
+  /groups:
+    post:
+      description: create a new group
+      operationId: controllers.group_controller.create_group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Successfully created a new group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  devices:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
+      tags:
+        - Group
+    get:
+      description: Get groups that the authenticated user is a member of
+      operationId: controllers.group_controller.get_groups
+      responses:
+        '200':
+          description: Got the group info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GroupSummary'
+      tags:
+        - Group
 
-#      get:
-#        description: Gets the devices associated to a particular group
-#        operationId: controllers.device_controller.GetDevices
-#        parameters:
-#          - name: group_id
-#            in: path
-#            required: true
-#            schema:
-#              type: string
-#        responses:
-#          '200':
-#            description: Successfully retrieved all the devices asociated with a group
-#            content:
-#              application/json:
-#                schema:
-#                  type: object
-#                  properties:
-#                    nickname:
-#                      type: string
-#                    available:
-#                      type: boolean
-#                    status:
-#                      type: object
-#                      additionalProperties:
-#                        oneOf:
-#                          - type: string
-#                          - type: integer
-#                    data:
-#                      type: object
-#        tags:
-#          - Group
+  /groups/{groupId}/summary:
+    get:
+      description: Get group summary info
+      operationId: controllers.group_controller.get_group_summary
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Got the group summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group:
+                    $ref: '#/components/schemas/GroupSummary'
+      tags:
+        - Group
+        
+  /groups/{groupId}:
+    get:
+      description: Get group info
+      operationId: controllers.group_controller.get_group
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Got the group info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group:
+                    $ref: '#/components/schemas/Group'
+      tags:
+        - Group
+
 components:
   schemas:
     Device:
@@ -248,26 +323,36 @@ components:
               type: string
             phone:
               type: string
-      
-    Group:
+    GroupSummary:
       type: object
       properties:
-        id:
-          type: string
-        ownerId:
+        id: 
           type: string
         name:
           type: string
-        members:
-          type: array
-          items:
-            $ref: '#/components/schemas/GroupMember'
-        devices:
-          type: array
-          items:
-            $ref: '#/components/schemas/SavedDevice'
-        permissions:
-          type: array
-          items:
-            $ref: '#/components/schemas/DevicePermission'  
+        ownerId:
+          type: string
+    Group:
+      allOf:
+        - $ref: '#/components/schemas/GroupSummary'
+        - type: object
+          properties:
+            id:
+              type: string
+            ownerId:
+              type: string
+            name:
+              type: string
+            members:
+              type: array
+              items:
+                $ref: '#/components/schemas/GroupMember'
+            devices:
+              type: array
+              items:
+                $ref: '#/components/schemas/SavedDevice'
+            permissions:
+              type: array
+              items:
+                $ref: '#/components/schemas/DevicePermission'  
             
