@@ -29,7 +29,7 @@ def get_group(group_id):
 
 
 @group_controller.route("/<group_id>/summary", methods=["GET"])
-@jwt_required()
+# @jwt_required()
 def get_group_summary(group_id):
     return flask.jsonify(GroupRepository().get_group_summary_by_group(group_id))
 
