@@ -106,7 +106,7 @@ def join_group(group_id):
 
         return flask.jsonify(response)
     else:
-        token = get_token_info(request.headers.environ["HTTP_AUTHORIZATION"][4:])
+        token = get_token_info(request.headers.environ["HTTP_AUTHORIZATION"])
         user_id = token["userId"]
         user_name = token["name"]
         if not GroupRepository().find_user(user_id):
