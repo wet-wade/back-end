@@ -29,11 +29,12 @@ def login():
             token = jwt.encode({
                 'userId': user['id'],
                 'name': user['name']
-            }, 'very-super-secret')
+            }, 'very-super-secret'
+                ,algorithm="HS256")
 
             return {
                 "user": user,
-                "token": f"{token.decode('utf-8')}"
+                "token": f"{token}"
             }
         except Exception as err:
             logging.error(err)
@@ -64,7 +65,7 @@ def register():
 
             return {
                 "user": user,
-                "token": f"{token.decode('utf-8')}"
+                "token": f"{token}"
             }
 
         except Exception as err:
