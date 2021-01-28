@@ -87,7 +87,7 @@ def join_group(group_id):
     if not request.json:
         return page_not_found
 
-    if request.headers.environ["HTTP_AUTHORIZATION"][4:] == "":
+    if 'Authorization' not in request.headers:
         user_name = request.json["name"]
         user_id = get_uuid()
         token = jwt.encode({
@@ -99,7 +99,7 @@ def join_group(group_id):
                 "id": user_id,
                 "name": user_name
             },
-            "token": token.decode("utf-8")
+            "token": token #.decode("utf-8")
         }
 
         GroupRepository().create_visitor(user_id, group_id, user_name)
