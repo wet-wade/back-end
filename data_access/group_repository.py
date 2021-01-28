@@ -340,9 +340,13 @@ class GroupRepository:
 
             self.fuseki_client.execute(insert)
 
-            return devices
+            return {
+                "devices": devices
+            }
         else:
-            return discovered_devices
+            return {
+                "devices": discovered_devices
+            }
 
     def create_visitor(self, user_id, group_id, user_name):
         current_members_names = self.get_group_members_name(group_id)
