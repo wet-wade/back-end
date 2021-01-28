@@ -5,7 +5,7 @@ import redis
 from flask import Blueprint, request
 from flask_jwt import jwt_required, current_identity
 from controllers.controller_utils import page_not_found, server_error, MapCommand, bad_request, get_uuid, unauthorized, \
-    ok
+    ok, get_token_info
 from data_access.group_repository import GroupRepository
 from data_access.permission_repository import PermissionRepository
 
@@ -31,7 +31,9 @@ def get_group(group_id):
 @group_controller.route("/<group_id>/summary", methods=["GET"])
 # @jwt_required()
 def get_group_summary(group_id):
-    return flask.jsonify(GroupRepository().get_group_summary_by_group(group_id))
+    return flask.jsonify({
+            "group": GroupRepository().get_group_summary_by_group(group_id)
+        })
 
 
 @group_controller.route("/<group_id>/discover", methods=["GET"])
@@ -85,7 +87,7 @@ def join_group(group_id):
     if not request.json:
         return page_not_found
 
-    if 'Authorization' not in request.headers:
+    if request.headers.environ["HTTP_AUTHORIZATION"][4:] == "":
         user_name = request.json["name"]
         user_id = get_uuid()
         token = jwt.encode({
@@ -94,7 +96,7 @@ def join_group(group_id):
         }, 'very-super-secret')
         response = {
             "visitor": {
-                "userId": user_id,
+                "id": user_id,
                 "name": user_name
             },
             "token": token.decode("utf-8")
@@ -104,7 +106,7 @@ def join_group(group_id):
 
         return flask.jsonify(response)
     else:
-        token = jwt.decode()
+        token = get_token_info(request.headers.environ["HTTP_AUTHORIZATION"][4:])
         user_id = token["userId"]
         user_name = token["name"]
         if not GroupRepository().find_user(user_id):

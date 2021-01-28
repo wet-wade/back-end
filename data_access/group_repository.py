@@ -124,6 +124,7 @@ class GroupRepository:
         SELECT ?name ?id ?owner_id
         WHERE {{
             ?group groups:name ?name .
+            ?group groups:id ?id .
             ?group groups:id "{group_id}" .
     		?group groups:isOwnedBy ?owner .
     		?owner users:id ?owner_id .
