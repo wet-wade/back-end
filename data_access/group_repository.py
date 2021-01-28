@@ -76,9 +76,9 @@ class GroupRepository:
                         "id": permission_id,
                         "deviceId": permission_device_id,
                         "memberId": permission_member_id,
-                        "manage": permission_manage,
-                        "read": permission_read,
-                        "write": permission_write,
+                        "manage": bool(int(permission_manage)),
+                        "read": bool(int(permission_read)),
+                        "write": bool(int(permission_write)),
                     })
 
         return res
@@ -93,7 +93,7 @@ class GroupRepository:
             res = {
                 "id": id,
                 "name": name,
-                "creatorId": owner_id
+                "ownerId": owner_id
             }
 
             res_list.append(res)
@@ -184,8 +184,8 @@ class GroupRepository:
             groups:{group["id"]} rdf:type groups:Group ;
                 groups:name "{group["name"]}" ;
                 groups:id "{group["id"]}" ;
-                groups:isOwnedBy users:{group["owner"]["username"]} ;
-                groups:hasMember users:{group["owner"]["username"]} .
+                groups:isOwnedBy users:{group["owner"]} ;
+                groups:hasMember users:{group["owner"]} .
         }}
         """
 

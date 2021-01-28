@@ -24,7 +24,7 @@ def get_groups():
 @jwt_required()
 def get_group(group_id):
     return flask.jsonify({
-        "device": GroupRepository().get_group(group_id)
+        "group": GroupRepository().get_group(group_id)
     })
 
 
@@ -49,7 +49,14 @@ def create_group():
     model = request.json
 
     try:
-        group_id = GroupRepository().create_group(model["name"])
+
+        group = {
+            "id": "",
+            "name": model["name"],
+            "owner": current_identity["username"]
+        }
+
+        group_id = GroupRepository().create_group(group)
 
         return flask.jsonify({
             "group": GroupRepository().get_group_summary_by_group(group_id)
@@ -118,9 +125,12 @@ def set_permissions(group_id):
     model = request.json["permissions"]
     user_id = current_identity["id"]
 
-    result = PermissionRepository().set_permission(group_id, user_id, model)
+    try:
+        PermissionRepository().set_permission(group_id, user_id, model)
 
-    return flask.jsonify(result)
+        return flask.jsonify({})
+    except:
+        return bad_request
 
 
 @group_controller.route("/<group_id>/devices/<device_id>/command", methods=["POST"])

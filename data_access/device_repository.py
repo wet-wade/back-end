@@ -1,4 +1,6 @@
-from controllers.controller_utils import get_uuid
+import random
+
+from controllers.controller_utils import get_uuid, mock_property_value_by_type
 from data_access.fuseki_client import FusekiClient
 
 
@@ -30,9 +32,10 @@ class DeviceRepository:
         for line in results.decode("utf-8").strip().split("\r\n")[1:]:
             group, title, action_target_link, prop_name, prop_target_link, = line.split(',')
 
+            type = group.split("#")[-1],
             if not res:
                 res = {
-                    "type": group.split("#")[-1],
+                    "type": type,
                     "title": title,
                     "properties": [],
                     "actions": []
@@ -52,7 +55,8 @@ class DeviceRepository:
                 if not prop_filtering:
                     res["properties"].append({
                         "name": prop_name,
-                        "link": prop_target_link
+                        "link": prop_target_link,
+                        "value": mock_property_value_by_type(prop_name)
                     })
 
         return res
