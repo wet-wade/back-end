@@ -17,11 +17,25 @@ ok = Response("{'200', 'OK'}", status=200, mimetype='application/json')
 created = Response("{'201':'Created'}", status=201, mimetype='application/json')
 
 known_devices = {
-    "hvac": ["LG LW1817IVSM", "Midea Smartcool", "Midea U Inverter", "GE AHP10LZ", "Frigidaire Cool Connect"],
-    "lighbulb": ["Tuya Smart Life", "Phillips HUE", "TP LINK L510E"],
-    "door": ["Ultraloq U-Bolt Pro", "Kwikset Halo Touch", "Nest X Yale Lock", "August Wi-Fi Smart Lock"],
-    "outlet": ["Amazon Smart Plug", "DELTACO", "Tuya Smart Plug"]
-
+    "hvac":
+        ["LG LW1817IVSM",
+         "Midea Smartcool",
+         "Midea U Inverter",
+         "GE AHP10LZ",
+         "Frigidaire Cool Connect"],
+    "lighbulb":
+        ["Tuya Smart Life",
+         "Phillips HUE",
+         "TP LINK L510E"],
+    "door":
+        ["Ultraloq U-Bolt Pro",
+         "Kwikset Halo Touch",
+         "Nest X Yale Lock",
+         "August Wi-Fi Smart Lock"],
+    "outlet":
+        ["Amazon Smart Outlet",
+         "DELTACO",
+         "Tuya Smart Outlet"]
 }
 
 pwd_context = CryptContext(

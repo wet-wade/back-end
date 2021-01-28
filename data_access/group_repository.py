@@ -287,23 +287,62 @@ class GroupRepository:
         results = self.fuseki_client.query(query, "csv")
         return self.parse_group_members_csv(results)
 
+    def get_discovered_devices(self, group_id):
+        print(group_id)
+        query = f"""
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX devices: <http://www.semanticweb.org/ontologies/devices#> 
+                PREFIX groups: <http://www.semanticweb.org/ontologies/groups#> 
+                PREFIX users: <http://www.semanticweb.org/ontologies/users#> 
+
+                SELECT ?id ?name ?nickname ?device_type
+                    WHERE {{
+                      ?group groups:id "{group_id}" .
+                      ?group groups:hasDiscovered ?device_list .
+                      ?device_list devices:id ?id .
+                      ?device_list a ?device_type .
+                      ?device_list devices:name ?name .
+                      ?device_list devices:nickname ?nickname .
+                }}
+            """
+        results = self.fuseki_client.query(query, "csv")
+        return DeviceRepository().parse_device_discover(results)
+
     def discover(self, group_id):
+        discovered_devices = self.get_discovered_devices(group_id)
+        if len(discovered_devices) == 0:
+            device_repo = DeviceRepository()
+            devices = []
+            devices_ids = []
 
-        device_repo = DeviceRepository()
-        devices = []
+            for device_type, _ in known_devices.items():
+                device_id = get_uuid()
+                device_name = random.choice(known_devices[device_type])
 
-        for k, devices in known_devices.items():
-            device = {
-                "id": get_uuid(),
-                "nickname": "",
-                "name": random.choice(known_devices[k]),
-                "type": k
-            }
+                device = {
+                    "id": device_id,
+                    "nickname": "",
+                    "name": device_name,
+                    "type": device_type
+                }
 
-            device_repo.insert_device(device)
-            devices.append(device)
+                devices.append(device)
+                devices_ids.append(device_id)
+                device_repo.insert_device_with_id(device)
 
-        return devices
+            insert = f"""
+                    PREFIX devices: <http://www.semanticweb.org/ontologies/devices#>
+                    PREFIX groups: <http://www.semanticweb.org/ontologies/groups#>
+                    INSERT DATA {{
+                        groups:{group_id} groups:hasDiscovered {self.compute_sparql_devices('devices', devices_ids)}
+                    }}
+                """
+
+            self.fuseki_client.execute(insert)
+
+            return devices
+        else:
+            return discovered_devices
 
     def create_visitor(self, user_id, group_id, user_name):
         current_members_names = self.get_group_members_name(group_id)

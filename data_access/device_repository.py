@@ -80,6 +80,36 @@ class DeviceRepository:
 
         return self.parse_device_definition_csv(results)
 
+    def insert_device_with_id(self, device):
+        insert = f"""
+        {self.prefixes}
+
+        INSERT DATA {{
+            devices:{device["id"]} rdf:type devices:{device["type"]};
+                devices:name "{device["name"]}" ;
+                devices:id "{device["id"]}" ;
+                devices:nickname "{device["nickname"]}" ;  
+        }}
+        """
+
+        self.fuseki_client.execute(insert)
+        return device["id"]
+
+    @staticmethod
+    def parse_device_discover(results):
+        devices = []
+        for line in results.decode("utf-8").strip().split("\r\n")[1:]:
+            device_id, device_name, device_nickname, device_type, = line.split(',')
+            device_type = device_type.split("#")[-1]
+            devices.append({
+                "id": device_id,
+                "nickname": "",
+                "name": device_name,
+                "type": device_type
+            })
+
+        return devices
+
     def insert_device(self, device):
         device["id"] = get_uuid()
 
