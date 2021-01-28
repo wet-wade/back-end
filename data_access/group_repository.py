@@ -278,7 +278,7 @@ class GroupRepository:
 
                 SELECT ?member_id
                     WHERE {{
-                        ?group groups:id "8cbbc285-555-4dd7-8bc2-6e5116sdf71d9" .
+                        ?group groups:id "{group_id}" .
                         ?group groups:hasMember ?member .
                         ?member users:id ?member_id .
                         ?member users:name ?member_name .

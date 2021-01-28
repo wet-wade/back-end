@@ -107,7 +107,7 @@ class DeviceRepository:
             device_type = device_type.split("#")[-1]
             devices.append({
                 "id": device_id,
-                "nickname": "",
+                "nickname": device_nickname,
                 "name": device_name,
                 "type": device_type
             })
