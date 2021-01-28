@@ -54,7 +54,9 @@ def register():
             token = jwt.encode({
                 'userId': user['id'],
                 'name': user['name']
-            }, 'very-super-secret')
+            },
+                'very-super-secret',
+                algorithm="HS256")
 
             return {
                 "user": user,
