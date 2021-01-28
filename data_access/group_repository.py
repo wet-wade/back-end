@@ -303,6 +303,9 @@ class GroupRepository:
                       ?device_list a ?device_type .
                       ?device_list devices:name ?name .
                       ?device_list devices:nickname ?nickname .
+                    MINUS {{
+                        ?group groups:consistsOf ?device_list
+                    }}
                 }}
             """
         results = self.fuseki_client.query(query, "csv")
