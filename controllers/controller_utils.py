@@ -56,7 +56,7 @@ def check_encrypted_password(password, hashed_password):
 
 
 def get_token_info(token):
-    return jwt.decode(token, 'very-super-secret')
+    return jwt.decode(token, 'very-super-secret', algorithms=["HS256"])
 
 
 def ValidateAttribute(x, attribute):
