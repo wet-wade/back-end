@@ -35,7 +35,7 @@ def get_group_summary(group_id):
 
 
 @group_controller.route("/<group_id>/discover", methods=["GET"])
-# @jwt_required()
+@jwt_required()
 def discover(group_id):
     return flask.jsonify(GroupRepository().discover(group_id))
 
