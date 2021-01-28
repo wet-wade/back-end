@@ -1,3 +1,5 @@
+import logging
+
 import flask
 import jwt
 from flask import Blueprint, request
@@ -33,10 +35,12 @@ def login():
                 "user": user,
                 "token": f"{token.decode('utf-8')}"
             }
-        except:
+        except Exception as err:
+            logging.error(err)
             return unauthorized
 
-    except:
+    except Exception as err:
+        logging.error(err)
         return server_error
 
 
@@ -62,9 +66,13 @@ def register():
                 "user": user,
                 "token": f"{token.decode('utf-8')}"
             }
-        except:
+
+        except Exception as err:
+            logging.error(err)
             return server_error
-    except:
+
+    except Exception as err:
+        logging.error(err)
         return server_error
 
 
